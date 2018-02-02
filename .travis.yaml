@@ -1,0 +1,16 @@
+---
+language: python
+sudo: false
+python:
+  - "3.6"
+
+install:
+  - virtualenv venv --python python3.6
+
+script:
+  - venv/bin/pip install -r test.txt
+  - venv/bin/pip install pyinstaller
+  - ./build.sh
+
+after_script:
+  - build/dist/kubernaut-agent_linux_x86_64
