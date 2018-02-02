@@ -14,7 +14,7 @@ setup(
     ],
     entry_points="""
         [console_scripts]
-        kubernaut-agent=kubernaut.agent:cli
+        kubernaut-agent=kubernaut.agent:agent
     """,
     author="datawire.io",
     author_email="dev@datawire.io",
