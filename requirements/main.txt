@@ -1,1 +1,2 @@
 autobahn==17.10.1
+click=6.7
