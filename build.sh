@@ -14,10 +14,13 @@ set -euxo pipefail
 os="$(uname | tr [:upper:] [:lower:])"
 platform="$(uname -m | tr [:upper:] [:lower:])"
 
-executable_name="kubernaut-agent_${os}_${platform}"
+exec_base_name="kubernaut-agent"
+exec_full_name="${exec_base_name}_${os}_${platform}"
 
 pyinstaller kubernaut/agent.py \
     --distpath build/dist \
-    --name ${executable_name} \
+    --name ${exec_full_name} \
     --onefile \
     --workpath build
+
+ln -sf build/dist/${exec_full_name} build/dist/${exec_base_name}
