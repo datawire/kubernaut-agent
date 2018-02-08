@@ -20,8 +20,13 @@ def find_kubectl(search: List[str] = None) -> str:
 kubectl_exec = find_kubectl(["/bin", "/usr/local/bin"])
 
 
+def read_kubeconfig(kubeconfig: str) -> str:
+    p = Path(kubeconfig)
+    return p.read_text(encoding="utf-8")
+
+
 def discover_cluster_id(namespace: str = "kube-system",
-                        kubeconfig: str = os.path.expanduser("~/.kube/config")) -> str:
+                        kubeconfig: str = "~/.kube/config") -> str:
 
     """Gets a Kubernetes cluster ID.
 

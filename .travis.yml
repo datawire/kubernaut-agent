@@ -12,9 +12,8 @@ env:
 script:
   - pip install -r test.txt
   - pip install pyinstaller
-  - pytest
   - ./build.sh
-  - build/dist/kubernaut-agent_linux_x86_64 --help
+  - build/dist/kubernaut-agent --help
 
 deploy:
   provider: script

@@ -1,8 +1,16 @@
 import asyncio
 import click
 import json
+import logging
+import sys
 
 from autobahn.asyncio.websocket import WebSocketClientProtocol, WebSocketClientFactory
+from .kubernetes import read_kubeconfig, discover_cluster_id
+from .protocol import CapV1Protocol
+
+logging.basicConfig(stream=sys.stdout)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 CONTROLLER_HOST = "kubernaut.io"
@@ -15,21 +23,24 @@ CONTROLLER_PROTO = "wss"
     "--controller-endpoint",
     envvar="KUBERNAUT_CONTROLLER_ENDPOINT",
     help="Configure remote Kubernaut Controller endpoint",
-    default="wss://kubernaut.io/cap-v1",
+    default="wss://kubernaut.io/ws/capv1",
     type=str
-)
-@click.argument(
-    "cluster_id",
-    envvar="KUBERNAUT_CLUSTER_ID",
 )
 @click.argument(
     "kubeconfig_file",
     envvar="KUBERNAUT_CLUSTER_KUBECONFIG_FILE",
+    type=click.Path(exists=True)
 )
-def agent(controller_endpoint, cluster_id, kubeconfig_file):
-    print("Starting Kubernaut Agent...")
-    factory = WebSocketClientFactory("ws://127.0.0.1:7000/cap-v1")
-    factory.protocol = AgentProtocol
+def agent(controller_endpoint, kubeconfig_file):
+    logger.info("Started Kubernaut Agent")
+
+    cluster_id = discover_cluster_id(namespace="default", kubeconfig=kubeconfig_file)
+    kubeconfig = read_kubeconfig(kubeconfig_file)
+
+    factory = WebSocketClientFactory(controller_endpoint)
+    factory.protocol = CapV1Protocol
+    factory.protocol.cluster_id = cluster_id
+    factory.protocol.kubeconfig = kubeconfig
 
     loop = asyncio.get_event_loop()
     conn = loop.create_connection(factory, "127.0.0.1", 7000)
