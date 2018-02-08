@@ -1,2 +1,2 @@
--r requirements/main.txt
+-r main.txt
 pytest==3.4.0
