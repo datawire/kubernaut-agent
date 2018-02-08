@@ -1,3 +1,6 @@
+# --- AWS ---
+ci/aws_credentials
+
 # --- IntelliJ IDEA ---
 .idea
 *.iml
