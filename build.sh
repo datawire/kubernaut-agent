@@ -18,3 +18,5 @@ pyinstaller kubernaut/agent.py \
     --name "${EXECUTABLE_NAME}" \
     --onefile \
     --workpath build
+
+build/dist/${VERSION}/${OS}/${PLATFORM}/${EXECUTABLE_NAME} --help
