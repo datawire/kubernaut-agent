@@ -11,6 +11,8 @@ set -o pipefail
 
 source vars.sh
 
+pip install awscli
+
 branch="${TRAVIS_BRANCH:?TRAVIS_BRANCH envionment variable is not set}"
 tag="${TRAVIS_TAG}"
 
