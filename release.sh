@@ -9,6 +9,7 @@ if [[ -z "${VIRTUAL_ENV}" ]]; then
 fi
 
 source vars.sh
+
 pip install awscli
 
 aws s3 cp \
