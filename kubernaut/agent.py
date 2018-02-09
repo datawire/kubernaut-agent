@@ -5,8 +5,8 @@ import logging
 import sys
 
 from autobahn.asyncio.websocket import WebSocketClientProtocol, WebSocketClientFactory
-from .kubernetes import read_kubeconfig, discover_cluster_id
-from .protocol import CapV1Protocol
+from kubernaut.kubernetes import read_kubeconfig, discover_cluster_id
+from kubernaut.protocol import CapV1Protocol
 
 logging.basicConfig(stream=sys.stdout)
 logger = logging.getLogger(__name__)
