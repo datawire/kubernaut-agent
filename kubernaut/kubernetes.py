@@ -17,9 +17,6 @@ def find_kubectl(search: List[str] = None) -> str:
     raise ValueError("Unable to find `kubectl` program on system")
 
 
-kubectl_exec = find_kubectl(["/bin", "/usr/local/bin"])
-
-
 def read_kubeconfig(kubeconfig: str) -> str:
     p = Path(kubeconfig)
     return p.read_text(encoding="utf-8")
@@ -49,7 +46,7 @@ def discover_cluster_id(namespace: str = "kube-system",
 
 
 def kubectl(args: List[str], env: Mapping[str, str] = None) -> Tuple[int, str]:
-    args.insert(0, kubectl_exec)
+    args.insert(0, find_kubectl(["/bin", "/usr/local/bin"]))
     completed = run(args, shell=False, stdout=PIPE, stderr=STDOUT, env=env)
 
     return completed.returncode, completed.stdout
