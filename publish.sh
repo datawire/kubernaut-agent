@@ -9,13 +9,17 @@ set -o pipefail
 # More information is documented in the RELEASE.md file at repository root.
 #
 
+if [[ -z "${VIRTUAL_ENV}" ]]; then
+    echo "Virtualenv not active! Abort!"
+    exit 1
+fi
+
 source vars.sh
 
 pip install awscli
 
 branch="${TRAVIS_BRANCH:?TRAVIS_BRANCH envionment variable is not set}"
 tag="${TRAVIS_TAG}"
-
 
 if [[ "$TRAVIS_PULL_REQUEST" -ne "false" ]]; then is_pr="true";  else is_pr="false"; fi
 if [[ -n "$TRAVIS_TAG" ]];                   then is_tag="true"; else is_tag="false"; fi
@@ -33,4 +37,4 @@ set +o verbose
 aws s3api put-object \
     --bucket "$RELEASE_S3_BUCKET" \
     --key "$RELEASE_S3_KEY" \
-    --body "build/dist/$VERSION/$OS/$PLATFORM"
+    --body "build/dist/$VERSION/$OS/$PLATFORM/$EXECUTABLE_NAME"

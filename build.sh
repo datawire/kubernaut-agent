@@ -12,6 +12,11 @@ set -o pipefail
 # Not tested with Windows or macOS.
 #
 
+if [[ -z "${VIRTUAL_ENV}" ]]; then
+    echo "Virtualenv not active! Abort!"
+    exit 1
+fi
+
 source vars.sh
 
 pip install -r requirements/test.txt
