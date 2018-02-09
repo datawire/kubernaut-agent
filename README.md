@@ -4,6 +4,13 @@
 
 The Kubernaut Agent is a small program that communicates with the Kubernaut Controller about cluster availability and claims.
 
+# Reference
+
+| Document | Description |
+| -------- | ----------- |
+| [Build Process](BUILD.md) | Describes the build process |
+| [Release Process](RELEASE.md) | Describes the release process |
+
 # Installation 
 
 ## Binary

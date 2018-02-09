@@ -9,6 +9,7 @@ set -o pipefail
 # More information is documented in the RELEASE.md file at repository root.
 #
 
+echo "This is NOT a tagged commit"
 source vars.sh
 
 branch="${TRAVIS_BRANCH:?TRAVIS_BRANCH envionment variable is not set}"
@@ -25,8 +26,6 @@ echo "Is Tag       = '$is_tag'"
 echo "Tag          = '$tag'"
 echo "S3 Bucket    = '$RELEASE_S3_BUCKET'"
 echo "S3 Object    = '$RELEASE_S3_KEY'"
-
-echo "This is not a tagged commit"
 
 #mkdir ~/.aws
 #cp ci/aws_config ~/.aws/config
