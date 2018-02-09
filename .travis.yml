@@ -6,7 +6,6 @@ python:
 
 env:
   global:
-    - AWS_ACCESS_KEY_ID=AKIAJMWHHLPPAAFZSNSA
     - secure: "3WyLV9dtBU6RXKgJMDN+xzit/aRKsygon0Ymas0Cov6eXu+GnbXlU1XCbkF0EQwBGpx6iPSEnzB+IHUba+4RbP3m6dW05MzfUPqV5NrvvVLIFH+t3bc14Uu7NLUqaD7HeiobCFVM76fONdZIO9r9DPut8ZWrUgWcUJfp/RdihO90QZDKsVvRkPmk/8VVLcDToJSDrJ3h7jxcSeNqYt+B87W1rQQ501qomjt9uQenrHAZX2OMO0ccm1NIKU+1D8iUwcbtD4KJW6T+p/2mOQ4dSnpW07CRTb1KKi5xlJo98GkNpqo4n775KJ2E3dmQERACd+JyvP7PIopslzSdF+MOnZyoLZqcr60O1CKQ2+pY57vYrG9iDvLj10042RB7ZDsxw0+Px2ax5MyoT9pbXSfTrnkfGsW2ZA6jENb/jMCmB74Fj+qf4QyYqL9oQbYgLCLTlYRw3uZnziD7lmFIOC80pYteACJhqFtvgJUMNTQR+uFdR6RzfwJe/mqU9LznLCYSB2t0L/cFphX9rshuxBGuWITnTqYuZgu3UFqQ+ysN6871qXyZe3zLYdFv2542RlkpOaeWmylj4g8jxR9Xk8neFedcxSzrf+rGmSzIEyEQjSTSG6BfkAuquLwyZalqRsMYVoTPFMccXZ2+jS70NEYGUOIveIpsAwJMxtNcZ4zVEuU="
 
 script:
@@ -15,9 +14,15 @@ script:
   - ./build.sh
 
 deploy:
-  provider: script
-  skip_cleanup: true
-  script: publish.sh
-  on:
-    tags: true
-    branch: master
+  - provider: script
+    skip_cleanup: true
+    script: publish.sh
+    on:
+      tags: false
+      branch: master
+  - provider: script
+    skip_cleanup: true
+    script: release.sh
+    on:
+      tags: true
+      branch: master

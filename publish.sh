@@ -11,14 +11,6 @@ set -o pipefail
 
 source vars.sh
 
-# --- BEGIN CONFIGURATION ---
-
-# !!! Warning: Advanced Configuration Below !!!
-
-S3_BUCKET="datawire-static-files"
-
-# --- END CONFIGURATION ---
-
 branch="${TRAVIS_BRANCH:?TRAVIS_BRANCH envionment variable is not set}"
 tag="${TRAVIS_TAG}"
 
@@ -34,10 +26,12 @@ echo "Tag          = '$tag'"
 echo "S3 Bucket    = '$RELEASE_S3_BUCKET'"
 echo "S3 Object    = '$RELEASE_S3_KEY'"
 
-mkdir ~/.aws
-cp ci/aws_config ~/.aws/config
+echo "This is not a tagged commit"
 
-aws s3api put-object \
-    --bucket "$RELEASE_S3_BUCKET" \
-    --key "$RELEASE_S3_KEY" \
-    --body "build/dist/$VERSION/$OS/$PLATFORM"
+#mkdir ~/.aws
+#cp ci/aws_config ~/.aws/config
+#
+#aws s3api put-object \
+#    --bucket "$RELEASE_S3_BUCKET" \
+#    --key "$RELEASE_S3_KEY" \
+#    --body "build/dist/$VERSION/$OS/$PLATFORM"

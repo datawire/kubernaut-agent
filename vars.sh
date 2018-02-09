@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+export AWS_ACCESS_KEY_ID="AKIAJMWHHLPPAAFZSNSA"
+export AWS_DEFAULT_REGION="us-east-1"
+export AWS_DEFAULT_OUTPUT="json"
 
 export EXECUTABLE_NAME="kubernaut-agent"
 export OS="$(uname | tr [:upper:] [:lower:])"

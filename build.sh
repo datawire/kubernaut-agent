@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+set -o verbose
+set -o errexit
+set -o pipefail
 
 #
 # file: build.sh
@@ -9,9 +12,10 @@
 # Not tested with Windows or macOS.
 #
 
-set -euxo pipefail
-
 source vars.sh
+
+pip install -r requirements/test.txt
+pip install pyinstaller
 
 pyinstaller kubernaut/agent.py \
     --distpath "build/dist/$VERSION/$OS/$PLATFORM" \
