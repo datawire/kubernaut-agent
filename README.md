@@ -45,6 +45,10 @@ In order to test and develop the agent you need a Kubernaut Controller server.
 
 **TODO**
 
+# Design
+
+The design is documented in [doc/design.md](doc/design.md).
+
 # Cluster Agent Protocol v1
 
 The Kubernaut Cluster Agent Protocol v1 (CAP/1.0) is a JSON payload bi-directional WebSocket protocol with a handful of message types.
