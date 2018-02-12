@@ -18,6 +18,12 @@ The agent identifier exists primarily to allow the controller to associate one o
 
 The agent identifier is sent as the `agent-id` query parameter in the websocket endpoint URL. 
 
+# Authentication
+
+The agent uses a single shared secret to authenticate with the controller. In the future the system will likely use Json Web Tokens ("JWT") or some other API key mechanism to allow external users to attach clusters to the Kubernaut controller.
+
+The secret is sent as the `agent-token` query parameter in the websocket endpoint URL.
+
 # Startup Process
 
 When the agent starts the following things occur:
