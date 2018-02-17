@@ -52,7 +52,7 @@ def start_agent(controller_endpoint: str, kubeconfig_file: str, node_id: str):
     controller_endpoint += controller_endpoint + "?agent-id={}".format(str(agent_id))
     parsed_controller_endpoint = urlparse(controller_endpoint)
 
-    cluster = ClusterDetail(cluster_id, kubeconfig, nodes={node_id}, state="UNCLAIMED")
+    cluster = ClusterDetail(cluster_id, kubeconfig, nodes={node_id}, state="UNREGISTERED")
     clusters = load_agent_state(agent_data)
     if len(clusters) > 0:
         if cluster.id in clusters:

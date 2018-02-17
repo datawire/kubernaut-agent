@@ -30,13 +30,17 @@ class ClusterDetail:
 
 class Agent(WebSocketClientProtocol):
 
-    def __init__(self, factory: WebSocketClientFactory, identity: UUID, data_dir: Path, clusters: Dict[str, ClusterDetail]):
+    def __init__(self, factory: WebSocketClientFactory, identity: UUID, data_dir: Path,
+                 clusters: Dict[str, ClusterDetail]):
+
         super().__init__()
         self.factory = require(factory, "factory cannot be None")
         self.data_dir = require(data_dir, "data_dir cannot be None")
         self.id = require(identity, "identity cannot be None")
         self.clusters = require_not_empty(clusters, "clusters cannot be empty")
         self.state = "not_started"
+        self.orphaned = []
+        self.run_handle = None
 
     def _jsonify(self, obj: Any) -> str:
         return json.dumps(require(obj), indent=True)
@@ -48,31 +52,65 @@ class Agent(WebSocketClientProtocol):
         self.sendMessage(payload.encode("UTF-8"), isBinary=False)
 
     def _create_agent_sync_request(self, cluster_ids: Set[str]) -> str:
-        msg = {"@type": "cluster-heartbeat", "clusters": require_not_empty(cluster_ids)}
+        msg = {
+            "@type": "cluster-heartbeat",
+            "clusters": require_not_empty(cluster_ids)
+        }
         return self._jsonify(msg)
 
     def _create_cluster_heartbeat(self, cluster_ids: Set[str]) -> str:
-        msg = {"@type": "cluster-heartbeat", "clusters": require_not_empty(cluster_ids)}
+        msg = {
+            "@type": "cluster-heartbeat",
+            "clusters": require_not_empty(cluster_ids)
+        }
         return self._jsonify(msg)
 
-    def _create_cluster_registration_request(self, clusters: Dict[str, Any]) -> str:
-        msg = {"@type": "cluster-registration-request", "clusters": require_not_empty(clusters)}
+    def _create_cluster_registration_request(self, clusters: Dict[str, ClusterDetail]) -> str:
+        msg = {
+            "@type": "cluster-registration-request",
+            "clusters": require_not_empty(clusters)
+        }
         return self._jsonify(msg)
 
     def _process_message(self, msg_type: str, msg: Dict[str, Any]):
         if msg_type == "agent-sync-response":
-            pass
+            if self.state == "connected:syncing":
+                self._handle_agent_sync_response(msg)
+                self.state = "running"
+            else:
+                logger.warning("Received 'msg-type = %s' prematurely 'state = %s", msg_type, self.state)
+                return
         elif msg_type == "cluster-registration-response":
+            if self.state == "running":
+                self._handle_cluster_registration_response(msg)
+                self.state = "registered"
+            else:
+                logger.warning("Received 'msg-type = %s' prematurely 'state = %s", msg_type, self.state)
+        elif msg_type in {"cluster-claimed", "cluster-discarded"}:
             pass
-        elif msg_type == "cluster-claimed":
-            pass
-        elif msg_type == "cluster-discarded":
-            pass
+
+    def _handle_agent_sync_response(self, response: Dict[str, Any]):
+        synced_clusters = response.get("clusters", {})
+
+        for cluster_id, status in synced_clusters.items():
+            if cluster_id in self.clusters:
+                claim_status = status["claimStatus"].upper()
+                if claim_status in {"CLAIMED", "DISCARDED"}:
+                    old_state = self.clusters[cluster_id].state
+                    self.clusters[cluster_id] = claim_status
+                    logger.info("Agent notified of claim status change 'cluster = %s' 'transition = %s -> %s'",
+                                cluster_id,
+                                old_state,
+                                claim_status)
+
+            else:
+                logger.warning("Agent notified of orphaned cluster 'cluster = %s' 'nodes = %s'", cluster_id, status["nodes"])
+                self.orphaned.append(cluster_id)
 
     def onOpen(self):
         logger.info("CAPv1 session opened")
         self.state = "connected"
-        self._run()
+        self.run()
 
     def onClose(self, wasClean, code, reason):
         logger.info("CAPv1 session closed 'code = %s' 'reason = %s'", code, reason)
@@ -91,6 +129,30 @@ class Agent(WebSocketClientProtocol):
                 return
         else:
             logger.warning("Received binary payload that the agent cannot process")
+
+    def run(self):
+        if self.state == "connected":
+            msg = self._create_agent_sync_request(cluster_ids=set(self.clusters.keys()))
+            self.state = "connected:syncing"
+            self._send_message(msg)
+
+        if self.state == "running":
+            heartbeats = set([])
+            registrations = {}
+            for cluster_id, cluster in self.clusters:
+                if cluster.state == "UNCLAIMED":
+                    heartbeats.add(cluster_id)
+                elif cluster.state == "UNREGISTERED":
+                    registrations[cluster_id] = cluster
+
+            if len(heartbeats) > 0:
+                msg = self._create_cluster_heartbeat(heartbeats)
+                self._send_message(self._jsonify(msg))
+            if len(registrations) > 0:
+                msg = self._create_cluster_registration_request(registrations)
+                self._send_message(self._jsonify(msg))
+
+        self.run_handle = self.factory.loop.call_later(5, self.run)
 
 
 def ensure_data_dir_exists(data_dir: Path) -> Path:
@@ -117,7 +179,6 @@ def create_agent_protocol_factory(ctrl_endpoint: str,
 
     factory = WebSocketClientFactory(ctrl_endpoint)
     factory.protocol = lambda: Agent(factory, agent_id, agent_data, clusters)
-
     return factory
 
 
