@@ -42,12 +42,6 @@ class Agent(WebSocketClientProtocol):
         self.orphaned = []
         self.run_handle = None
 
-    def _jsonify(self, obj: Any) -> str:
-        return json.dumps(require(obj), indent=True)
-
-    def _unjsonify(self, data: str) -> Dict[str, Any]:
-        return json.loads(data)
-
     def _send_message(self, payload: str):
         self.sendMessage(payload.encode("UTF-8"), isBinary=False)
 
@@ -56,21 +50,21 @@ class Agent(WebSocketClientProtocol):
             "@type": "cluster-heartbeat",
             "clusters": require_not_empty(cluster_ids)
         }
-        return self._jsonify(msg)
+        return jsonify(msg)
 
     def _create_cluster_heartbeat(self, cluster_ids: Set[str]) -> str:
         msg = {
             "@type": "cluster-heartbeat",
             "clusters": require_not_empty(cluster_ids)
         }
-        return self._jsonify(msg)
+        return jsonify(msg)
 
     def _create_cluster_registration_request(self, clusters: Dict[str, ClusterDetail]) -> str:
         msg = {
             "@type": "cluster-registration-request",
             "clusters": require_not_empty(clusters)
         }
-        return self._jsonify(msg)
+        return jsonify(msg)
 
     def _process_message(self, msg_type: str, msg: Dict[str, Any]):
         if msg_type == "agent-sync-response":
@@ -119,7 +113,7 @@ class Agent(WebSocketClientProtocol):
     def onMessage(self, payload, isBinary):
         if not isBinary:
             try:
-                msg = json.loads(payload)
+                msg = unjsonify(payload)
                 if not isinstance(msg, dict):
                     logger.warning("Received invalid payload")
                     return
@@ -147,10 +141,10 @@ class Agent(WebSocketClientProtocol):
 
             if len(heartbeats) > 0:
                 msg = self._create_cluster_heartbeat(heartbeats)
-                self._send_message(self._jsonify(msg))
+                self._send_message(jsonify(msg))
             if len(registrations) > 0:
                 msg = self._create_cluster_registration_request(registrations)
-                self._send_message(self._jsonify(msg))
+                self._send_message(jsonify(msg))
 
         self.run_handle = self.factory.loop.call_later(5, self.run)
 
