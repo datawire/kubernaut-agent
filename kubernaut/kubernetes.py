@@ -17,9 +17,8 @@ def find_kubectl(search: List[str] = None) -> str:
     raise ValueError("Unable to find `kubectl` program on system")
 
 
-def read_kubeconfig(kubeconfig: str) -> str:
-    p = Path(kubeconfig)
-    return p.read_text(encoding="utf-8")
+def read_kubeconfig(kubeconfig_file: Path) -> str:
+    return kubeconfig_file.read_text(encoding="UTF-8")
 
 
 def discover_cluster_id(namespace: str = "kube-system",

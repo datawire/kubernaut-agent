@@ -57,7 +57,10 @@ If the `agent-sync-response` message is empty then the agent can send one or mor
     {
       "@type": "cluster-registration-request",
       "clusters": {
-        "__CLUSTER_ID__": {"group": "_POOL_NAME_", "kubeconfig": "__KUBECONFIG__"}
+        "__CLUSTER_ID__": {
+          "group": "_POOL_NAME_", 
+          "kubeconfig": "__KUBECONFIG__"
+        }
       }
     }
 ```

@@ -10,7 +10,8 @@ setup(
     include_package_data=True,
     install_requires=[
         "autobahn",
-        "click"
+        "click",
+        "validators"
     ],
     entry_points="""
         [console_scripts]

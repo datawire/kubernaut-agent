@@ -22,7 +22,7 @@ source vars.sh
 pip install -r requirements/test.txt
 pip install pyinstaller
 
-pyinstaller kubernaut/agent.py \
+pyinstaller kubernaut/cli.py \
     --distpath "build/dist/$VERSION/$OS/$PLATFORM" \
     --name "${EXECUTABLE_NAME}" \
     --onefile \
