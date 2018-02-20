@@ -22,9 +22,9 @@ install:
 
 script:
   - if [[ "${TRAVIS_TAG}" == "" ]]; then
-      kubernaut claim
-      mv ~/.kube/kubernaut ~/.kube/config
-      tox -e py36 && ./build.sh; fi
+      kubernaut claim;
+      mv ~/.kube/kubernaut ~/.kube/config;
+      tox -e py36 && ./build.sh;
     fi
 
 after_script:
