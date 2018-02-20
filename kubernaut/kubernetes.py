@@ -1,6 +1,7 @@
 import typing
 import json
 import os
+import sys
 
 from pathlib import Path
 from subprocess import run, STDOUT, PIPE
@@ -21,8 +22,7 @@ def read_kubeconfig(kubeconfig_file: Path) -> str:
     return kubeconfig_file.read_text(encoding="UTF-8")
 
 
-def discover_cluster_id(namespace: str = "kube-system",
-                        kubeconfig: str = "~/.kube/config") -> str:
+def discover_cluster_id(namespace: str = "kube-system", kubeconfig: Path = (Path.home() / ".kube" / "config")) -> str:
 
     """Gets a Kubernetes cluster ID.
 
@@ -36,8 +36,13 @@ def discover_cluster_id(namespace: str = "kube-system",
     :return: the given namespaces UID acting as cluster ID.
     """
 
-    (status, output) = kubectl(args=["get", "namespace", namespace, "--output=json"],
-                               env={"KUBECONFIG": os.path.expanduser(kubeconfig)})
+    env_kubectl = {}
+    if os.getenv("KUBECONFIG"):
+        env_kubectl = {"KUBECONFIG": os.getenv("KUBECONFIG")}
+    else:
+        env_kubectl = {"KUBECONFIG": os.path.expanduser(str(kubeconfig))}
+
+    (status, output) = kubectl(args=["get", "namespace", namespace, "--output=json"], env=env_kubectl)
     if status == 0:
         return json.loads(output)["metadata"]["uid"]
     else:
@@ -45,7 +50,7 @@ def discover_cluster_id(namespace: str = "kube-system",
 
 
 def kubectl(args: List[str], env: Mapping[str, str] = None) -> Tuple[int, str]:
-    args.insert(0, find_kubectl(["/bin", "/usr/local/bin"]))
+    args.insert(0, find_kubectl(["/bin", "/usr/local/bin", os.path.expanduser("~/bin")]))
     completed = run(args, shell=False, stdout=PIPE, stderr=STDOUT, env=env)
 
     return completed.returncode, completed.stdout

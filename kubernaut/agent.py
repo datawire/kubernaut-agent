@@ -77,7 +77,6 @@ class Agent(WebSocketClientProtocol):
         elif msg_type == "cluster-registration-response":
             if self.state == "running":
                 self._handle_cluster_registration_response(msg)
-                self.state = "registered"
             else:
                 logger.warning("Received 'msg-type = %s' prematurely 'state = %s", msg_type, self.state)
         elif msg_type in {"cluster-claimed", "cluster-discarded"}:
