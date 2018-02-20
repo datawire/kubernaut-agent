@@ -5,6 +5,27 @@ from pathlib import Path
 from uuid import UUID, uuid4
 
 
+class MockLoggingHandler(logging.Handler):
+    """Mock logging handler to check for expected logs."""
+
+    def __init__(self, *args, **kwargs):
+        self.messages = {}
+        self.reset()
+        logging.Handler.__init__(self, *args, **kwargs)
+
+    def emit(self, record):
+        self.messages[record.levelname.lower()].append(record.getMessage())
+
+    def reset(self):
+        self.messages = {
+            'debug': [],
+            'info': [],
+            'warning': [],
+            'error': [],
+            'critical': [],
+        }
+
+
 def test_ensure_data_dir_exists(tmpdir):
     dir_under_test = Path(tmpdir) / "kubernaut-agent"
     assert not dir_under_test.exists()
@@ -102,3 +123,43 @@ def test_load_valid_agent_state(tmpdir):
                         state="CLAIMED",
                         nodes={"i-test-1", "i-test-2"})
     assert loaded["9e606833-cd34-4df6-882a-c9b99409282d"] == cl1
+
+
+def test_onMessage_binary_message_is_not_handled(tmpdir):
+    logs = MockLoggingHandler()
+    logger.addHandler(logs)
+
+    endpoint = "ws://localhost:7000/ws/capv1"
+    agent_id = uuid4()
+
+    cluster = ClusterDetail(cluster_id=str(uuid4()), kubeconfig="IAmTheWalrus", nodes={"i-test"}, state="UNCLAIMED")
+    clusters = {cluster.id: cluster}
+
+    factory = create_agent_protocol_factory(endpoint, agent_id, Path(tmpdir), clusters)
+    agent = factory.protocol()
+
+    agent.onMessage(None, isBinary=True)
+
+    assert len(logs.messages["warning"]) == 1
+    assert logs.messages["warning"][0] == "Received binary payload that the agent cannot process"
+
+
+def test_onMessage_invalid_json_is_not_handled(tmpdir, mocker):
+    logs = MockLoggingHandler()
+    logger.addHandler(logs)
+
+    endpoint = "ws://localhost:7000/ws/capv1"
+    agent_id = uuid4()
+
+    cluster = ClusterDetail(cluster_id=str(uuid4()), kubeconfig="IAmTheWalrus", nodes={"i-test"}, state="UNCLAIMED")
+    clusters = {cluster.id: cluster}
+
+    factory = create_agent_protocol_factory(endpoint, agent_id, Path(tmpdir), clusters)
+    agent = factory.protocol()
+
+    mocker.stub("agent._process_message")
+
+    agent.onMessage("{IAmNotAValidJsonDocument}", isBinary=False)
+
+    assert len(logs.messages["error"]) == 1
+    assert logs.messages["error"][0] == "Received invalid JSON payload"

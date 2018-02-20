@@ -82,6 +82,24 @@ class Agent(WebSocketClientProtocol):
         elif msg_type in {"cluster-claimed", "cluster-discarded"}:
             pass
 
+    def _handle_cluster_claimed(self, msg: Dict[str, Any]):
+        cluster_id = msg["clusterId"]
+
+        if cluster_id in self.clusters:
+            self.clusters[cluster_id].state = "CLAIMED"
+            write_agent_state(self.clusters, self.data_dir / "clusters.json")
+        else:
+            logger.warning("Agent notified about state of unknown cluster 'cluster = %s'", cluster_id)
+
+    def _handle_cluster_released(self, msg: Dict[str, Any]):
+        cluster_id = msg["clusterId"]
+
+        if cluster_id in self.clusters:
+            self.clusters[cluster_id].state = "DISCARDED"
+            write_agent_state(self.clusters, self.data_dir / "clusters.json")
+        else:
+            logger.warning("Agent notified about state of unknown cluster 'cluster = %s'", cluster_id)
+
     def _handle_agent_sync_response(self, response: Dict[str, Any]):
         synced_clusters = response.get("clusters", {})
 
@@ -96,9 +114,29 @@ class Agent(WebSocketClientProtocol):
                                 old_state,
                                 claim_status)
 
+                write_agent_state(self.clusters, self.data_dir / "clusters.json")
             else:
-                logger.warning("Agent notified of orphaned cluster 'cluster = %s' 'nodes = %s'", cluster_id, status["nodes"])
+                logger.warning("Agent notified of orphaned cluster 'cluster = %s' 'nodes = %s'",
+                               cluster_id, status["nodes"])
                 self.orphaned.append(cluster_id)
+
+    def _handle_cluster_registration_response(self, response: Dict[str, Any]):
+        registrants = response.get("clusters", {})
+
+        for cluster_id, registration_detail in registrants.items():
+            if cluster_id in self.clusters:
+                r_status = registration_detail["status"].upper()
+                if r_status == "ACCEPTED":
+                    old_state = self.clusters[cluster_id].state
+                    self.clusters[cluster_id] = "REGISTERED"
+                    logger.info("Agent notified of registration status change 'cluster = %s' 'transition = %s -> %s'",
+                                cluster_id,
+                                old_state,
+                                r_status)
+
+                write_agent_state(self.clusters, self.data_dir / "clusters.json")
+            else:
+                logger.warning("Agent notified of unknown cluster 'cluster = %s'", cluster_id)
 
     def onOpen(self):
         logger.info("CAPv1 session opened")
@@ -118,10 +156,11 @@ class Agent(WebSocketClientProtocol):
                     return
                 self._process_message(msg.get("@type", "unknown").lower(), msg)
             except JSONDecodeError as ex:
-                logger.error("Received invalid JSON payload", ex)
+                logger.exception("Received invalid JSON payload")
                 return
         else:
             logger.warning("Received binary payload that the agent cannot process")
+            return
 
     def run(self):
         if self.state == "connected":
@@ -173,6 +212,11 @@ def create_agent_protocol_factory(ctrl_endpoint: str,
     factory = WebSocketClientFactory(ctrl_endpoint)
     factory.protocol = lambda: Agent(factory, agent_id, agent_data, clusters)
     return factory
+
+
+def write_agent_state(state: Dict[str, ClusterDetail], state_file: Path):
+    data = json.dumps(state, indent=True)
+    state_file.write_text(data, encoding="UTF-8")
 
 
 def load_agent_state(state_file: Path) -> Dict[str, ClusterDetail]:
