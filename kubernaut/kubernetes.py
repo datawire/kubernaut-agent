@@ -50,7 +50,7 @@ def discover_cluster_id(namespace: str = "kube-system", kubeconfig: Path = (Path
 
 
 def kubectl(args: List[str], env: Mapping[str, str] = None) -> Tuple[int, str]:
-    args.insert(0, find_kubectl(["/bin", "/usr/local/bin", os.path.expanduser("~/bin")]))
+    args.insert(0, find_kubectl(["/bin", "/usr/bin", "/usr/local/bin", os.path.expanduser("~/bin")]))
     completed = run(args, shell=False, stdout=PIPE, stderr=STDOUT, env=env)
 
     return completed.returncode, completed.stdout
