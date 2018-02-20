@@ -6,6 +6,7 @@ import sys
 from autobahn.asyncio.websocket import WebSocketClientProtocol, WebSocketClientFactory
 from json import JSONDecodeError
 from kubernaut.util import *
+from kubernaut.node import shutdown
 from pathlib import Path
 from typing import Any, Dict, List, Set
 from uuid import UUID, uuid4
@@ -97,6 +98,7 @@ class Agent(WebSocketClientProtocol):
         if cluster_id in self.clusters:
             self.clusters[cluster_id].state = "DISCARDED"
             write_agent_state(self.clusters, self.data_dir / "clusters.json")
+            shutdown()
         else:
             logger.warning("Agent notified about state of unknown cluster 'cluster = %s'", cluster_id)
 
@@ -108,7 +110,7 @@ class Agent(WebSocketClientProtocol):
                 claim_status = status["claimStatus"].upper()
                 if claim_status in {"CLAIMED", "DISCARDED"}:
                     old_state = self.clusters[cluster_id].state
-                    self.clusters[cluster_id] = claim_status
+                    self.clusters[cluster_id].state = claim_status
                     logger.info("Agent notified of claim status change 'cluster = %s' 'transition = %s -> %s'",
                                 cluster_id,
                                 old_state,
@@ -116,8 +118,7 @@ class Agent(WebSocketClientProtocol):
 
                 write_agent_state(self.clusters, self.data_dir / "clusters.json")
             else:
-                logger.warning("Agent notified of orphaned cluster 'cluster = %s' 'nodes = %s'",
-                               cluster_id, status["nodes"])
+                logger.warning("Agent notified of orphaned cluster 'cluster = %s'", cluster_id)
                 self.orphaned.append(cluster_id)
 
     def _handle_cluster_registration_response(self, response: Dict[str, Any]):
@@ -155,12 +156,10 @@ class Agent(WebSocketClientProtocol):
                     logger.warning("Received invalid payload")
                     return
                 self._process_message(msg.get("@type", "unknown").lower(), msg)
-            except JSONDecodeError as ex:
+            except JSONDecodeError:
                 logger.exception("Received invalid JSON payload")
-                return
         else:
             logger.warning("Received binary payload that the agent cannot process")
-            return
 
     def run(self):
         if self.state == "connected":
@@ -215,7 +214,16 @@ def create_agent_protocol_factory(ctrl_endpoint: str,
 
 
 def write_agent_state(state: Dict[str, ClusterDetail], state_file: Path):
-    data = json.dumps(state, indent=True)
+    raw = {}
+    for cluster_id, detail in state.items():
+        raw[cluster_id] = {
+            'id': detail.id,
+            'state': detail.state,
+            'nodes': list(detail.nodes),
+            'kubeconfig': detail.kubeconfig
+        }
+
+    data = json.dumps(raw, indent=True)
     state_file.write_text(data, encoding="UTF-8")
 
 

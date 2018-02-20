@@ -4,7 +4,7 @@ Kubernaut agent is a tiny agent that registers and heartbeats the existence of a
 
 The Kubernaut agent is intended to run as a sibling process to the `kubelet`, but it can also be run as a pod on a Kubernetes cluster as well. Care must be taken when running the agent as a pod in Kubernetes to ensure that it is not deleted otherwise the agent and controller are unable to communicate with each other.
 
-The agent communicates with the controller using a bidirectional adhoc JSON web socket protocol which is known as the Cluster Agent Protocol v1 or CAPv1. The CAP is designed to support multi-cluster communication from a single agent, but the current Kubernaut Agent does not support multiple cluster registration and heartbeating.
+The agent communicates with the controller using a bidirectional ad-hoc JSON web socket protocol which is known as the Cluster Agent Protocol v1 or CAPv1. The CAP is designed to support multi-cluster communication from a single agent, but the current Kubernaut Agent does not currently handle more than one cluster at a time. 
 
 # Cluster Identifier
 
@@ -20,9 +20,7 @@ The agent identifier is sent as the `agent-id` query parameter in the websocket 
 
 # Authentication
 
-The agent uses a single shared secret to authenticate with the controller. In the future the system will likely use Json Web Tokens ("JWT") or some other API key mechanism to allow external users to attach clusters to the Kubernaut controller.
-
-The secret is sent as the `agent-token` query parameter in the websocket endpoint URL.
+The agent itself does not have any authentication to connect to the controller, however, a cluster can only register with the controller if it has a known Cluster Group token which is essentially a shared secret the agent provides on behalf of a cluster at registration.
 
 # Startup Process
 
@@ -44,7 +42,7 @@ When the agent starts the following things occur:
     {
       "@type": "agent-sync-response",
       "clusters": {
-        "__CLUSTER_ID__": {"status": "UNCLAIMED|CLAIMED|DISCARDED"}
+        "__CLUSTER_ID__": {"claimStatus": "UNCLAIMED|CLAIMED|DISCARDED"}
       }
     }
     ```
@@ -89,14 +87,6 @@ For each `ACCEPTED` registration the agent needs to send periodic heartbeats to 
 
 If the agent disconnects then the controller purges from storage any references to an UNCLAIMED cluster associated with the agent. When and if the agent reconnects, then the controller will send claim status information to the agent.
 
+# Cluster Release
 
-
-
-
-
-
-
-
-
-
-    
+When a cluster is discarded by a user the agent should receive a `cluster-released` message. From the current agents perspective 'release' is interpreted as terminate the cluster, however, in the future alternate mechanisms such as restart and clean existing state may be viable options. For this reason the message is not known as `cluster-discard`.
