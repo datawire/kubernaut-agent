@@ -18,11 +18,12 @@ logger.setLevel(logging.DEBUG)
 
 class ClusterDetail:
 
-    def __init__(self, cluster_id: str, kubeconfig: str, state: str, nodes: Set[str]):
+    def __init__(self, cluster_id: str, kubeconfig: str, state: str, token: str, nodes: Set[str]):
         self.id = require(cluster_id)
         self.kubeconfig = require_not_empty(kubeconfig)
         self.nodes = require_not_empty(nodes)
         self.state = require_not_empty(state)
+        self.token = require_not_empty(token)
 
     def __str__(self): return str(self.__dict__)
 
@@ -219,6 +220,7 @@ def write_agent_state(state: Dict[str, ClusterDetail], state_file: Path):
         raw[cluster_id] = {
             'id': detail.id,
             'state': detail.state,
+            'token': detail.token,
             'nodes': list(detail.nodes),
             'kubeconfig': detail.kubeconfig
         }
@@ -233,7 +235,13 @@ def load_agent_state(state_file: Path) -> Dict[str, ClusterDetail]:
         loaded = json.loads(raw, encoding="UTF-8")
         result = {}
         for k, v in loaded.items():
-            result[k] = ClusterDetail(k, v["kubeconfig"], v["state"], set(v["nodes"]))
+            result[k] = ClusterDetail(
+                cluster_id=k,
+                kubeconfig=v["kubeconfig"],
+                token=v["token"],
+                state=v["state"],
+                nodes=set(v["nodes"])
+            )
 
         return result
     except FileNotFoundError as fnf:

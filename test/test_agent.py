@@ -65,7 +65,13 @@ def test_create_agent_protocol_factory(tmpdir):
     endpoint = "ws://localhost:7000/ws/capv1"
     agent_id = uuid4()
 
-    cluster = ClusterDetail(cluster_id=str(uuid4()), kubeconfig="IAmTheWalrus", nodes={"i-test"}, state="UNCLAIMED")
+    cluster = ClusterDetail(
+        cluster_id=str(uuid4()),
+        kubeconfig="IAmTheWalrus",
+        nodes={"i-test"},
+        token="VeryVerySecret",
+        state="UNCLAIMED"
+    )
     clusters = {cluster.id: cluster}
 
     factory = create_agent_protocol_factory(endpoint, agent_id, Path(tmpdir), clusters)
@@ -95,12 +101,14 @@ def test_load_valid_agent_state(tmpdir):
 {
     "6ec624c5-6742-40ce-b519-afc1c41c1444": {
         "kubeconfig": "__KUBECONFIG_DATA__", 
-        "nodes": ["i-test-0"], 
+        "nodes": ["i-test-0"],
+        "token": "VeryVerySecret",
         "state": "UNCLAIMED"
     },
     "9e606833-cd34-4df6-882a-c9b99409282d": {
         "kubeconfig": "__KUBECONFIG_DATA__", 
         "nodes": ["i-test-1", "i-test-2"], 
+        "token": "AlsoVeryVerySecret",
         "state": "CLAIMED"
     }
 }
@@ -114,6 +122,7 @@ def test_load_valid_agent_state(tmpdir):
     cl0 = ClusterDetail(cluster_id="6ec624c5-6742-40ce-b519-afc1c41c1444",
                         kubeconfig="__KUBECONFIG_DATA__",
                         state="UNCLAIMED",
+                        token="VeryVerySecret",
                         nodes={"i-test-0"})
 
     assert loaded["6ec624c5-6742-40ce-b519-afc1c41c1444"] == cl0
@@ -121,6 +130,7 @@ def test_load_valid_agent_state(tmpdir):
     cl1 = ClusterDetail(cluster_id="9e606833-cd34-4df6-882a-c9b99409282d",
                         kubeconfig="__KUBECONFIG_DATA__",
                         state="CLAIMED",
+                        token="AlsoVeryVerySecret",
                         nodes={"i-test-1", "i-test-2"})
     assert loaded["9e606833-cd34-4df6-882a-c9b99409282d"] == cl1
 
@@ -132,7 +142,13 @@ def test_onOpen(tmpdir, mocker):
     endpoint = "ws://localhost:7000/ws/capv1"
     agent_id = uuid4()
 
-    cluster = ClusterDetail(cluster_id=str(uuid4()), kubeconfig="IAmTheWalrus", nodes={"i-test"}, state="UNCLAIMED")
+    cluster = ClusterDetail(
+        cluster_id=str(uuid4()),
+        kubeconfig="IAmTheWalrus",
+        nodes={"i-test"},
+        token="VeryVerySecret",
+        state="UNCLAIMED"
+    )
     clusters = {cluster.id: cluster}
 
     factory = create_agent_protocol_factory(endpoint, agent_id, Path(tmpdir), clusters)
@@ -153,7 +169,13 @@ def test_onClose(tmpdir, mocker):
     endpoint = "ws://localhost:7000/ws/capv1"
     agent_id = uuid4()
 
-    cluster = ClusterDetail(cluster_id=str(uuid4()), kubeconfig="IAmTheWalrus", nodes={"i-test"}, state="UNCLAIMED")
+    cluster = ClusterDetail(
+        cluster_id=str(uuid4()),
+        kubeconfig="IAmTheWalrus",
+        nodes={"i-test"},
+        token="VeryVerySecret",
+        state="UNCLAIMED"
+    )
     clusters = {cluster.id: cluster}
 
     factory = create_agent_protocol_factory(endpoint, agent_id, Path(tmpdir), clusters)
@@ -173,7 +195,13 @@ def test_onMessage_binary_message_is_not_handled(tmpdir, mocker):
     endpoint = "ws://localhost:7000/ws/capv1"
     agent_id = uuid4()
 
-    cluster = ClusterDetail(cluster_id=str(uuid4()), kubeconfig="IAmTheWalrus", nodes={"i-test"}, state="UNCLAIMED")
+    cluster = ClusterDetail(
+        cluster_id=str(uuid4()),
+        kubeconfig="IAmTheWalrus",
+        nodes={"i-test"},
+        token="VeryVerySecret",
+        state="UNCLAIMED"
+    )
     clusters = {cluster.id: cluster}
 
     factory = create_agent_protocol_factory(endpoint, agent_id, Path(tmpdir), clusters)
@@ -196,7 +224,8 @@ def test_onMessage_invalid_json_is_not_handled(tmpdir, mocker):
     endpoint = "ws://localhost:7000/ws/capv1"
     agent_id = uuid4()
 
-    cluster = ClusterDetail(cluster_id=str(uuid4()), kubeconfig="IAmTheWalrus", nodes={"i-test"}, state="UNCLAIMED")
+    cluster = ClusterDetail(cluster_id=str(uuid4()), kubeconfig="IAmTheWalrus", nodes={"i-test"}, token="VeryVerySecret",
+                            state="UNCLAIMED")
     clusters = {cluster.id: cluster}
 
     factory = create_agent_protocol_factory(endpoint, agent_id, Path(tmpdir), clusters)
@@ -221,7 +250,13 @@ def test_agent_sync_response_with_updated_status(tmpdir):
     agent_id = uuid4()
 
     cluster_id = "55fb8400-f760-482d-9cd9-774a1a554827"
-    cluster = ClusterDetail(cluster_id, kubeconfig="IAmTheWalrus", nodes={"i-test"}, state="UNCLAIMED")
+    cluster = ClusterDetail(
+        cluster_id=cluster_id,
+        kubeconfig="IAmTheWalrus",
+        nodes={"i-test"},
+        token="VeryVerySecret",
+        state="UNCLAIMED"
+    )
     clusters = {cluster.id: cluster}
 
     factory = create_agent_protocol_factory(endpoint, agent_id, Path(tmpdir), clusters)
@@ -248,7 +283,8 @@ def test_agent_sync_response_with_updated_status(tmpdir):
 
     written_state = load_agent_state(agent.data_dir / "clusters.json")
     expected_state = {
-        cluster_id: ClusterDetail(cluster_id, kubeconfig="IAmTheWalrus", nodes={"i-test"}, state="CLAIMED")
+        cluster_id: ClusterDetail(cluster_id, kubeconfig="IAmTheWalrus", nodes={"i-test"}, token="VeryVerySecret",
+                                  state="CLAIMED")
     }
 
     assert written_state == expected_state
@@ -262,7 +298,13 @@ def test_agent_sync_response_with_orphaned_cluster(tmpdir):
     agent_id = uuid4()
 
     cluster_id = "55fb8400-f760-482d-9cd9-774a1a554827"
-    cluster = ClusterDetail(cluster_id, kubeconfig="IAmTheWalrus", nodes={"i-test"}, state="UNCLAIMED")
+    cluster = ClusterDetail(
+        cluster_id=cluster_id,
+        kubeconfig="IAmTheWalrus",
+        nodes={"i-test"},
+        token="VeryVerySecret",
+        state="UNCLAIMED"
+    )
     clusters = {cluster.id: cluster}
 
     factory = create_agent_protocol_factory(endpoint, agent_id, Path(tmpdir), clusters)

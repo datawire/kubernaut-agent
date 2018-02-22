@@ -33,21 +33,27 @@ CONTROLLER_PROTO: str = "wss"
 )
 @click.argument(
     "node_id",
-    envvar="NODE_ID",
+    envvar="KUBERNAUT_NODE_ID",
     type=str
 )
-def start_agent(controller_endpoint: str, kubeconfig_file: str, node_id: str):
+@click.argument(
+    "join_token",
+    envvar="KUBERNAUT_JOIN_TOKEN",
+    type=str
+)
+def start_agent(controller_endpoint: str, kubeconfig_file: str, node_id: str, join_token: str):
     logger.info("Agent is starting...")
 
     agent_data = ensure_data_dir_exists(Path(click.get_app_dir("kubernaut-agent", force_posix=True)))
     agent_id = get_or_create_agent_id(agent_data)
 
     kubeconfig = read_kubeconfig(Path(kubeconfig_file))
-    cluster_id = discover_cluster_id(namespace="default", kubeconfig=kubeconfig_file)
+    cluster_id = discover_cluster_id(namespace="default", kubeconfig=Path(kubeconfig_file))
 
     logger.info("Agent   ID = %s", agent_id)
     logger.info("Node    ID = %s", node_id)
     logger.info("Cluster ID = %s", cluster_id)
+    logger.info("Join Token = %s", join_token)
 
     controller_endpoint += controller_endpoint + "?agent-id={}".format(str(agent_id))
     parsed_controller_endpoint = urlparse(controller_endpoint)
