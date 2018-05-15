@@ -1,21 +1,19 @@
-import typing
 import json
 import os
-import sys
 
 from pathlib import Path
 from subprocess import run, STDOUT, PIPE
 from typing import List, Mapping, Tuple
 
 
-def find_kubectl(search: List[str] = None) -> str:
+def which(program: str, search: List[str] = None) -> str:
     for p in search:
         p = Path(p)
-        p = p / "kubectl"
+        p = p / program
         if p.is_file() and os.access(str(p), os.X_OK):
             return str(p)
 
-    raise ValueError("Unable to find `kubectl` program on system")
+    raise ValueError("Unable to find `{}` program on system".format(program))
 
 
 def read_kubeconfig(kubeconfig_file: Path) -> str:
@@ -50,7 +48,14 @@ def discover_cluster_id(namespace: str = "kube-system", kubeconfig: Path = (Path
 
 
 def kubectl(args: List[str], env: Mapping[str, str] = None) -> Tuple[int, str]:
-    args.insert(0, find_kubectl(["/bin", "/usr/bin", "/usr/local/bin", os.path.expanduser("~/bin")]))
+    args.insert(0, which("kubectl", ["/bin", "/usr/bin", "/usr/local/bin", os.path.expanduser("~/bin")]))
     completed = run(args, shell=False, stdout=PIPE, stderr=STDOUT, env=env)
 
-    return completed.returncode, completed.stdout
+    return completed.returncode, completed.stdout.decode("utf-8")
+
+
+def kubeadm(args: List[str], env: Mapping[str, str] = None) -> Tuple[int, str]:
+    args.insert(0, which("kubeadm", ["/bin", "/usr/bin", "/usr/local/bin", os.path.expanduser("~/bin")]))
+    completed = run(args, shell=False, stdout=PIPE, stderr=STDOUT, env=env)
+
+    return completed.returncode, completed.stdout.decode("utf-8")
