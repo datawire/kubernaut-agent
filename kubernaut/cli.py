@@ -50,6 +50,7 @@ def start_agent(controller_endpoint: str, kubeconfig_file: str, node_id: str, jo
     kubeconfig = read_kubeconfig(Path(kubeconfig_file))
     cluster_id = discover_cluster_id(namespace="default", kubeconfig=Path(kubeconfig_file))
 
+    logger.info("Controller = %s", controller_endpoint)
     logger.info("Agent   ID = %s", agent_id)
     logger.info("Node    ID = %s", node_id)
     logger.info("Cluster ID = %s", cluster_id)
@@ -58,7 +59,7 @@ def start_agent(controller_endpoint: str, kubeconfig_file: str, node_id: str, jo
     controller_endpoint += controller_endpoint + "?agent-id={}".format(str(agent_id))
     parsed_controller_endpoint = urlparse(controller_endpoint)
 
-    cluster = ClusterDetail(cluster_id, kubeconfig, nodes={node_id}, state="UNREGISTERED")
+    cluster = ClusterDetail(cluster_id, kubeconfig, nodes={node_id}, state="UNREGISTERED", token=join_token)
     clusters = load_agent_state(agent_data / "clusters.json")
     if len(clusters) > 0:
         if cluster.id in clusters:

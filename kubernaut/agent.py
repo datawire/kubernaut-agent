@@ -130,7 +130,7 @@ class Agent(WebSocketClientProtocol):
                 r_status = registration_detail["status"].upper()
                 if r_status == "ACCEPTED":
                     old_state = self.clusters[cluster_id].state
-                    self.clusters[cluster_id] = "REGISTERED"
+                    self.clusters[cluster_id].state = "REGISTERED"
                     logger.info("Agent notified of registration status change 'cluster = %s' 'transition = %s -> %s'",
                                 cluster_id,
                                 old_state,
