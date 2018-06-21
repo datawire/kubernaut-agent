@@ -11,12 +11,12 @@ services:
   - docker
 
 script:
-  - make test
+  - make compile SKIP_TESTS=false
 
-#deploy:
-#  - provider: script
-#    skip_cleanup: true
-#    script: make vm-images
+deploy:
+  - provider: script
+    skip_cleanup: true
+    script: make vm-images
 
 
 #---

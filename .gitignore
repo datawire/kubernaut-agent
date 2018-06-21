@@ -12,9 +12,11 @@ packer/packer-vars.json
 # --- Python ---
 *.egg-info
 *.pyc
+.pytest_cache
 __pycache__
 venv
 virtualenv
+.tox
 
 # --- PyInstaller ---
 dist

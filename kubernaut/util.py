@@ -19,8 +19,8 @@ def require_not_empty(value: T, msg="Value cannot be empty") -> T:
         return value
 
 
-def jsonify(obj: Any) -> str:
-    return json.dumps(require(obj), indent=True)
+def jsonify(obj: Any, indent=True) -> str:
+    return json.dumps(require(obj), indent=indent)
 
 
 def unjsonify(data: str) -> Dict[str, Any]:

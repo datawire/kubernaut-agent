@@ -11,9 +11,8 @@ from pathlib import Path
 from time import sleep
 from uuid import UUID, uuid4
 
-logging.basicConfig(stream=sys.stdout)
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logger = logging.getLogger("agent")
 
 cluster: Cluster = None
 
@@ -30,7 +29,7 @@ agent_state: str = "starting"
     type=str
 )
 @click.argument(
-    "kubeconfig",
+    "kubeconfig_file",
     envvar="KUBERNAUT_CLUSTER_KUBECONFIG",
     type=click.Path(exists=True)
 )
@@ -84,21 +83,40 @@ async def _run_agent(controller: str):
                         "status": cluster.state
                     }
                 }
-            })
+            }, indent=True)
 
             await websocket.send(cluster_json)
+            logger.info("Cluster snapshot sent,     cluster: %s, state: %s", cluster.cluster_id, cluster.state)
             response = await websocket.recv()
 
             json_dict = unjsonify(response)
             if json_dict["@type"] == "clusters-snapshot":
-                cluster.state = json_dict["clusters"][cluster.cluster_id]["status"]
+                status = json_dict["clusters"][cluster.cluster_id]["status"]
+                logger.info("Cluster snapshot received, cluster: %s, state: %s", cluster.cluster_id, status)
+                cluster.state = status
             else:
                 logger.warning("Received unknown message type: %s", json_dict["@type"])
 
-            if cluster.state in ["discarded", "expired"]:
-                cluster.shutdown()
+            if cluster.state in ["discarded", "expired", "released"]:
+                def do_nothing_handler(*args, **kwargs):
+                    return 0, ""
 
-            sleep(2)
+                # this is some drop dead stupid code, but under local dev scenarios I would be very annoyed if localhost
+                # did something like shutdown my cluster or my computer.
+                if "localhost" in controller_url or "127.0.0.1" in controller_url:
+                    cluster.shutdown(
+                        kubectl_handler=do_nothing_handler,
+                        kubeadm_handler=do_nothing_handler,
+                        system_handler=do_nothing_handler,
+                    )
+                else:
+                    cluster.shutdown(
+                        kubectl_handler=kubectl,
+                        kubeadm_handler=kubeadm,
+                        system_handler=os.system,
+                    )
+
+            sleep(5)
 
 
 def ensure_data_dir_exists(data_dir: Path) -> Path:
