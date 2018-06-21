@@ -10,11 +10,12 @@ setup(
     include_package_data=True,
     install_requires=[
         "autobahn",
-        "click"
+        "click",
+        "websockets"
     ],
     entry_points="""
         [console_scripts]
-        kubernaut-agent=kubernaut.agent:agent
+        kubernaut-agent=kubernaut.cli:start_agent
     """,
     author="datawire.io",
     author_email="dev@datawire.io",

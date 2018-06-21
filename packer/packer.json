@@ -1,0 +1,58 @@
+{
+  "variables": {
+    "build_url": "unknown",
+    "commit": null,
+    "force_deregister": "false"
+  },
+
+  "builders": [
+    {
+      "name": "kubernaut-k8s-v1102",
+      "type": "amazon-ebs",
+      "ami_description": "kubernaut vm",
+      "ami_name": "kubernaut-{{ user `commit` }}-k8s-v1102",
+      "instance_type": "m4.large",
+      "launch_block_device_mappings": [
+        {
+          "device_name": "/dev/sda1",
+          "volume_size": 10,
+          "volume_type": "gp2",
+          "delete_on_termination": true
+        }
+      ],
+      "force_deregister": "{{ user `force_deregister` }}",
+      "region": "us-east-1",
+      "run_tags": {
+        "Build": "{{ user `build_url` }}",
+        "Commit": "{{ user `commit` }}",
+        "Name": "packer-kubernaut-{{ user `commit` }}-k8s-v1102",
+        "Role": "packer"
+      },
+      "source_ami": "ami-7ad76705",
+      "sriov_support": true,
+      "spot_price_auto_product": "Linux/UNIX (Amazon VPC)",
+      "ssh_username": "ubuntu",
+      "tags": {
+        "Build": "{{ user `build_url` }}",
+        "Commit": "{{ user `commit` }}",
+        "kubernaut.io/kubernetes-version": "1.10.2"
+      }
+    }
+  ],
+
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "../build/linux/x86_64/kubernaut-agent",
+      "destination": "/usr/local/bin/kubernaut-agent"
+    },
+    {
+      "only": ["kubernaut-k8s-v1102"],
+      "type": "shell",
+      "scripts": [
+        "kubernaut_k8s-v1102.sh"
+      ],
+      "execute_command": "{{ .Vars }} sudo -E -S bash '{{ .Path }}'"
+    }
+  ]
+}

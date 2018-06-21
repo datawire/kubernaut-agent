@@ -1,4 +1,5 @@
 import asyncio
+import autobahn.websocket.util
 import click
 import logging
 import typing
@@ -8,10 +9,14 @@ from kubernaut.agent import *
 from pathlib import Path
 from urllib.parse import urlparse
 
+import txaio
+txaio.start_logging(level='info')
+
 logging.basicConfig(stream=sys.stdout)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
+#logging.getLogger('asyncio').setLevel(logging.DEBUG)
 
 CONTROLLER_HOST: str = "kubernaut.io"
 CONTROLLER_PORT: int = 443
@@ -56,8 +61,31 @@ def start_agent(controller_endpoint: str, kubeconfig_file: str, node_id: str, jo
     logger.info("Cluster ID = %s", cluster_id)
     logger.info("Join Token = %s", join_token)
 
-    controller_endpoint += controller_endpoint + "?agent-id={}".format(str(agent_id))
     parsed_controller_endpoint = urlparse(controller_endpoint)
+
+    use_ssl = False
+    ssl_ctx = None
+    if parsed_controller_endpoint.scheme == "wss":
+        import ssl
+        ssl_ctx = ssl.create_default_context()
+        use_ssl = True
+
+    port = parsed_controller_endpoint.port
+    if not port:
+        if use_ssl:
+            port = 443
+        else:
+            port = 80
+
+    url = autobahn.websocket.util.create_url(
+        hostname=parsed_controller_endpoint.hostname,
+        path=parsed_controller_endpoint.path,
+        port=parsed_controller_endpoint.port,
+        params={
+          'agent-id': agent_id
+        },
+        isSecure=use_ssl
+    )
 
     cluster = ClusterDetail(cluster_id, kubeconfig, nodes={node_id}, state="UNREGISTERED", token=join_token)
     clusters = load_agent_state(agent_data / "clusters.json")
@@ -67,10 +95,20 @@ def start_agent(controller_endpoint: str, kubeconfig_file: str, node_id: str, jo
     else:
         clusters[cluster.id] = cluster
 
-    factory = create_agent_protocol_factory(controller_endpoint, agent_id, agent_data, clusters)
+    if use_ssl:
+        controller_endpoint = "wss://{}".format(parsed_controller_endpoint.hostname)
+    else:
+        controller_endpoint = "ws://{}".format(parsed_controller_endpoint.hostname)
+
+    controller_endpoint += "{}?agent-id={}".format(parsed_controller_endpoint.path, str(agent_id))
+
+    factory = create_agent_protocol_factory(url, agent_id, agent_data, clusters)
 
     loop = asyncio.get_event_loop()
-    conn = loop.create_connection(factory, parsed_controller_endpoint.hostname, parsed_controller_endpoint.port)
+    conn = loop.create_connection(factory,
+                                  parsed_controller_endpoint.hostname,
+                                  port,
+                                  ssl=ssl_ctx if use_ssl else None)
     loop.run_until_complete(conn)
     loop.run_forever()
     loop.close()

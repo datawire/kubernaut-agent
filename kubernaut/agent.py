@@ -6,14 +6,12 @@ import sys
 from autobahn.asyncio.websocket import WebSocketClientProtocol, WebSocketClientFactory
 from json import JSONDecodeError
 from kubernaut.util import *
-from kubernaut.node import shutdown
+from kubernaut.cluster import shutdown
 from pathlib import Path
 from typing import Any, Dict, List, Set
 from uuid import UUID, uuid4
 
-logging.basicConfig(stream=sys.stdout)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class ClusterDetail:
@@ -25,9 +23,82 @@ class ClusterDetail:
         self.state = require_not_empty(state)
         self.token = require_not_empty(token)
 
+    def __repr__(self):
+        from pprint import pformat
+        return pformat(vars(self), indent=4, width=1)
+
     def __str__(self): return str(self.__dict__)
 
     def __eq__(self, other): return self.__dict__ == other.__dict__
+
+
+class KapAgent(WebSocketClientProtocol):
+
+    def __init__(self, factory: WebSocketClientFactory, agent_id: UUID, data_dir: Path,
+                 clusters: Dict[str, ClusterDetail]):
+        super().__init__()
+        self.factory = require(factory)
+
+        self.agent_id = require(agent_id)
+        self.agent_state = "unconnected"
+        self.clusters = clusters
+        self.run_handle = None
+
+    def _send_message(self, payload: str):
+        self.sendMessage(payload.encode("utf-8"), isBinary=False)
+
+    def _set_agent_state(self, target_state: str):
+        src_state = self.agent_state
+        if src_state != target_state:
+            self.agent_state = target_state.lower()
+            logger.info("agent state modified: '%s' -> '%s'", src_state, target_state)
+
+    def _create_agent_state_msg(self):
+        msg = {
+            "clusters": {
+                k: {"status": v["status"], "kubeconfig": v["kubeconfig"]} for (k, v) in self.clusters.items()
+            },
+        }
+
+        return jsonify(msg)
+
+    def onOpen(self):
+        self._set_agent_state("connected")
+        self.run()
+
+    def onClose(self, wasClean, code, reason):
+        self._set_agent_state("unconnected")
+
+    def onMessage(self, payload, isBinary):
+        if not isBinary:
+            try:
+                msg = unjsonify(payload)
+                if not isinstance(msg, dict):
+                    logger.warning("Invalid KAP payload received")
+                    return
+                self._onMessage(msg.get("@type", None).lower(), msg)
+            except JSONDecodeError:
+                logger.exception("Received invalid JSON payload")
+        else:
+            logger.warning("Received binary payload that the agent cannot process")
+
+    def _onMessage(self, msg_type: str, msg: Dict[str, Any]):
+        if msg_type is None:
+            return
+
+        if msg_type == "clusters":
+            self.clusters = msg["clusters"]
+            for cluster in self.clusters:
+                pass
+
+    def run(self):
+        if self.agent_state in ["unconnected", "disconnected"]:
+            pass
+
+        if self.agent_state == ["connected"]:
+            pass
+
+        self.run_handle = self.factory.loop.call_later(5, self.run)
 
 
 class Agent(WebSocketClientProtocol):
@@ -40,24 +111,28 @@ class Agent(WebSocketClientProtocol):
         self.data_dir = require(data_dir, "data_dir cannot be None")
         self.id = require(identity, "identity cannot be None")
         self.clusters = require_not_empty(clusters, "clusters cannot be empty")
-        self.state = "not_started"
+        self.agent_state = "not_started"
         self.orphaned = []
         self.run_handle = None
+
+    def _set_agent_state(self, target):
+        logger.info("State change: 'current = %s' -> 'target = %s'", self.agent_state, target)
+        self.agent_state = target
 
     def _send_message(self, payload: str):
         self.sendMessage(payload.encode("UTF-8"), isBinary=False)
 
     def _create_agent_sync_request(self, cluster_ids: Set[str]) -> str:
         msg = {
-            "@type": "cluster-heartbeat",
-            "clusters": require_not_empty(cluster_ids)
+            "@type": "agent-sync-request",
+            "clusters": require_not_empty(list(cluster_ids))
         }
         return jsonify(msg)
 
     def _create_cluster_heartbeat(self, cluster_ids: Set[str]) -> str:
         msg = {
             "@type": "cluster-heartbeat",
-            "clusters": require_not_empty(cluster_ids)
+            "clusters": require_not_empty(list(cluster_ids))
         }
         return jsonify(msg)
 
@@ -70,17 +145,20 @@ class Agent(WebSocketClientProtocol):
 
     def _process_message(self, msg_type: str, msg: Dict[str, Any]):
         if msg_type == "agent-sync-response":
-            if self.state == "connected:syncing":
+            if self.agent_state == "connected:syncing":
                 self._handle_agent_sync_response(msg)
-                self.state = "running"
+                self._set_agent_state("running")
             else:
-                logger.warning("Received 'msg-type = %s' prematurely 'state = %s", msg_type, self.state)
+                logger.warning("Received 'msg-type = %s' prematurely 'state = %s", msg_type, self.agent_state)
                 return
         elif msg_type == "cluster-registration-response":
-            if self.state == "running":
+            if self.agent_state == "running":
                 self._handle_cluster_registration_response(msg)
             else:
-                logger.warning("Received 'msg-type = %s' prematurely 'state = %s", msg_type, self.state)
+                logger.warning("Received 'msg-type = %s' prematurely 'state = %s", msg_type, self.agent_state)
+        elif msg_type == "cluster-discarded":
+            self._handle_cluster_released({})
+
         elif msg_type in {"cluster-claimed", "cluster-discarded"}:
             pass
 
@@ -99,11 +177,12 @@ class Agent(WebSocketClientProtocol):
         if cluster_id in self.clusters:
             self.clusters[cluster_id].state = "DISCARDED"
             write_agent_state(self.clusters, self.data_dir / "clusters.json")
-            shutdown()
+            shutdown(self.clusters[cluster_id])
         else:
             logger.warning("Agent notified about state of unknown cluster 'cluster = %s'", cluster_id)
 
     def _handle_agent_sync_response(self, response: Dict[str, Any]):
+        logger.info("response = %s", response)
         synced_clusters = response.get("clusters", {})
 
         for cluster_id, status in synced_clusters.items():
@@ -142,12 +221,12 @@ class Agent(WebSocketClientProtocol):
 
     def onOpen(self):
         logger.info("CAPv1 session opened")
-        self.state = "connected"
+        self._set_agent_state("connected")
         self.run()
 
     def onClose(self, wasClean, code, reason):
-        logger.info("CAPv1 session closed 'code = %s' 'reason = %s'", code, reason)
-        self.state = "disconnected"
+        logger.info("CAPv1 session closed 'code = %s' 'reason = %s', 'clean = %s'", code, reason, wasClean)
+        self._set_agent_state("disconnected")
 
     def onMessage(self, payload, isBinary):
         if not isBinary:
@@ -163,15 +242,18 @@ class Agent(WebSocketClientProtocol):
             logger.warning("Received binary payload that the agent cannot process")
 
     def run(self):
-        if self.state == "connected":
+        if self.agent_state == "connected":
             msg = self._create_agent_sync_request(cluster_ids=set(self.clusters.keys()))
-            self.state = "connected:syncing"
+            self._set_agent_state("connected:syncing")
             self._send_message(msg)
 
-        if self.state == "running":
+        if self.agent_state == "running":
+            import pprint
+            pprint.pprint(self.clusters)
+
             heartbeats = set([])
             registrations = {}
-            for cluster_id, cluster in self.clusters:
+            for cluster_id, cluster in self.clusters.items():
                 if cluster.state == "UNCLAIMED":
                     heartbeats.add(cluster_id)
                 elif cluster.state == "UNREGISTERED":
@@ -184,7 +266,20 @@ class Agent(WebSocketClientProtocol):
                 msg = self._create_cluster_registration_request(registrations)
                 self._send_message(jsonify(msg))
 
-        self.run_handle = self.factory.loop.call_later(5, self.run)
+            for cluster_id, cluster_detail in self.clusters.items():
+                if cluster_detail.state == "DISCARDED":
+                    del self.clusters[cluster_id]
+                    self._handle_cluster_released(cluster_detail)
+
+
+
+
+
+
+
+
+
+        self.run_handle = self.factory.loop.call_later(1, self.run)
 
 
 def ensure_data_dir_exists(data_dir: Path) -> Path:
