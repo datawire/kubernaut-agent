@@ -6,6 +6,9 @@ ci/aws_credentials
 *.iml
 out
 
+# --- Packer ---
+packer/packer-vars.json
+
 # --- Python ---
 *.egg-info
 *.pyc
