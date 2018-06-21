@@ -25,7 +25,12 @@ BINARY_PLATFORM := x86_64
 BINARY_NAME     := $(BINARY_BASENAME)-$(GIT_COMMIT_HASH)-$(BINARY_OS)-$(BINARY_PLATFORM)
 
 clean:
-	rm -rf build venv .[a-zA-Z_]*
+	rm -rf \
+		build \
+		venv \
+		.tox
+		*.egg-info \
+		__pycache__
 	find -iname "*.pyc" -delete
 
 compile: SKIP_TESTS = false

@@ -6,6 +6,9 @@ from subprocess import run, STDOUT, PIPE
 from typing import List, Mapping, Tuple
 
 
+BIN_PATHS = ["/bin", "/usr/bin", "/usr/local/bin", os.path.expanduser("~/bin")]
+
+
 def which(program: str, search: List[str] = None) -> str:
     for p in search:
         p = Path(p)
@@ -48,14 +51,14 @@ def discover_cluster_id(namespace: str = "kube-system", kubeconfig: Path = (Path
 
 
 def kubectl(args: List[str], env: Mapping[str, str] = None) -> Tuple[int, str]:
-    args.insert(0, which("kubectl", ["/bin", "/usr/bin", "/usr/local/bin", os.path.expanduser("~/bin")]))
+    args.insert(0, which("kubectl", BIN_PATHS))
     completed = run(args, shell=False, stdout=PIPE, stderr=STDOUT, env=env)
 
     return completed.returncode, completed.stdout.decode("utf-8")
 
 
 def kubeadm(args: List[str], env: Mapping[str, str] = None) -> Tuple[int, str]:
-    args.insert(0, which("kubeadm", ["/bin", "/usr/bin", "/usr/local/bin", os.path.expanduser("~/bin")]))
+    args.insert(0, which("kubeadm", BIN_PATHS))
     completed = run(args, shell=False, stdout=PIPE, stderr=STDOUT, env=env)
 
     return completed.returncode, completed.stdout.decode("utf-8")

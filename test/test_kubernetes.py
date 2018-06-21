@@ -42,10 +42,10 @@ def test_read_kubeconfig_nonexistent_kubeconfig(tmpdir):
         read_kubeconfig(kubeconfig_file)
 
 
-def test_discover_cluster_id():
-    kube_system_ns_uid = discover_cluster_id()
-    assert kube_system_ns_uid is not None
-
-    default_ns_uid = discover_cluster_id(namespace="default")
-    assert default_ns_uid is not None
-    assert default_ns_uid != kube_system_ns_uid
+# def test_discover_cluster_id():
+#     kube_system_ns_uid = discover_cluster_id()
+#     assert kube_system_ns_uid is not None
+#
+#     default_ns_uid = discover_cluster_id(namespace="default")
+#     assert default_ns_uid is not None
+#     assert default_ns_uid != kube_system_ns_uid

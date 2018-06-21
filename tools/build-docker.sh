@@ -24,7 +24,7 @@ if [[ "${SKIP_TESTS}" != "true" ]]; then
 tox -e py36
 fi
 
-pyinstaller kubernaut/cli.py \
+pyinstaller kubernaut/agent.py \
     --distpath "build/out" \
     --name ${BINARY_NAME} \
     --onefile \

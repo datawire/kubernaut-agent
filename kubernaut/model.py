@@ -2,9 +2,7 @@ import os
 
 import tempfile
 
-from pathlib import Path
 from kubernaut.kubernetes import kubeadm, kubectl
-from kubernaut.agent import ClusterDetail
 
 
 class Cluster:
@@ -14,7 +12,6 @@ class Cluster:
         self.state = state
         self.kubeconfig = kubeconfig
         self.token = token
-
 
     def shutdown(self):
         with tempfile.NamedTemporaryFile(encoding="UTF-8", prefix="kubeconfig-") as fp:

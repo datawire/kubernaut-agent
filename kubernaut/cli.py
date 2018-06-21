@@ -5,7 +5,7 @@ import logging
 import typing
 
 from kubernaut.kubernetes import read_kubeconfig, discover_cluster_id
-from kubernaut.agent import *
+from kubernaut.agent_original import *
 from pathlib import Path
 from urllib.parse import urlparse
 
