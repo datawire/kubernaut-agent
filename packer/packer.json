@@ -2,7 +2,8 @@
   "variables": {
     "build_url": "unknown",
     "commit": null,
-    "force_deregister": "false"
+    "force_deregister": "false",
+    "kubernautlet_binary_name": null
   },
 
   "builders": [
@@ -30,7 +31,6 @@
       },
       "source_ami": "ami-7ad76705",
       "sriov_support": true,
-      "spot_price_auto_product": "Linux/UNIX (Amazon VPC)",
       "ssh_username": "ubuntu",
       "tags": {
         "Build": "{{ user `build_url` }}",
@@ -43,14 +43,14 @@
   "provisioners": [
     {
       "type": "file",
-      "source": "../build/linux/x86_64/kubernaut-agent",
-      "destination": "/usr/local/bin/kubernaut-agent"
+      "source": "build/out/{{ user `kubernautlet_binary_name` }}",
+      "destination": "/usr/local/bin/kubernautlet"
     },
     {
       "only": ["kubernaut-k8s-v1102"],
       "type": "shell",
       "scripts": [
-        "kubernaut_k8s-v1102.sh"
+        "packer/kubernaut_k8s-v1102.sh"
       ],
       "execute_command": "{{ .Vars }} sudo -E -S bash '{{ .Path }}'"
     }

@@ -20,7 +20,9 @@ make clean
 pip install -Ur requirements/test.txt
 pip install pyinstaller
 
+if [[ "${SKIP_TESTS}" != "true" ]]; then
 tox -e py36
+fi
 
 pyinstaller kubernaut/cli.py \
     --distpath "build/out" \
