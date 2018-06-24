@@ -1,6 +1,5 @@
 SHELL = bash
 
-.ONESHELL:
 .PHONY: clean compile venv packer/packer-vars.json test
 
 GIT_MAIN_BRANCH ?= master
@@ -44,13 +43,7 @@ compile:
 	cp build/out/$(BINARY_NAME) build/out/$(BINARY_BASENAME)
 
 packer/packer-vars.json:
-	-cat <<- EOF > $@
-	{
-		"commit": "$(GIT_COMMIT_HASH)",
-		"forge_deregister": "false",
-		"kubernautlet_binary_name": "$(BINARY_NAME)"
-	}
-	EOF
+	tools/create-packer-vars.sh $(GIT_COMMIT_HASH) $(BINARY_NAME)
 
 shell: DOCKER_WORKDIR=$(DOCKER_MOUNTDIR)
 shell:
@@ -72,6 +65,6 @@ vm-images: DOCKER_IMAGE = hashicorp/packer:light
 vm-images: DOCKER_WORKDIR = $(DOCKER_MOUNTDIR)
 vm-images: PACKER_ARGS += -var=AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
 vm-images: PACKER_ARGS += -var=AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
-vm-images: packer/packer-vars.json compile
+vm-images: packer/packer-vars.json
 	@$(PACKER_VALIDATE)
 	@$(PACKER_BUILD)
