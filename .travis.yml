@@ -5,7 +5,9 @@ language: generic
 
 env:
   global:
-    - AWS_ACCESS_KEY_ID=AKIAJ6TFYZXKHELWF4BQ
+    # kubernautlet-ci
+    - AWS_ACCESS_KEY_ID=AKIAJXBYLGLCJA7BEJCA
+    - secure: "L1gU8lf1KjZZuUUyJkVs5He+vJOOe/x/qEDbnQwW4A9nRZCX7yT5ngmkVlZo2zbEumAKPC5q5HoQnU55eUkOLHMhY9PErSx7XSJzC9uOuOBXiGBVWIdNroEzBGYgJdvQsk+Y7VYO6J1cQE5Cylcil/HGVwIarO8TurjRC0lREsk/23npktNz/Mf+8e1yVV61pbgzaWZ58UJD9RYvxnejtIgMwoYoL2Hvt86VHnA2ijnvpgtNOXyKn+Wgwuf2ZqGXuaWHgSD4iNWj//DVt+T4A/HWk8DM5VpQxP9/ittfjP1cfyZQVElJc0R5Clb6jm8ndszBLPJaQfjVZAVoWwCgbzBTv4fJ8gPa3U/iwckaDRuZcjuE23bn7iO0ATLDTsxFRAXl8PxASSET30C3ySROckcGbmD+ra5CMkZxMXGlRqTtxPEynSieCymzqbjFu+9Ft02CdLGNXiKwMH83Uu0zJ7vRfJrcb/f37l7MjGVHOrvAfz8+hknl/T/9djXKyDFZNnNlMXqAhKkQXguf3zHDfb/Zprz9uL+RcCdoRWePMfZQQeFNcCKm1zjbjTBLVO5jnvQT6TCvzA1zjIaTXjRQ14rOV9n9uP4X3giQRVhiBaGTh6WtIvlyEEj1CozpR3/v7JhYZgVCSkD+m8OrAAP1dJwUKmtozGkC+M9Tr/RgTEE="
 
 services:
   - docker
@@ -17,50 +19,3 @@ deploy:
   - provider: script
     skip_cleanup: true
     script: make vm-images
-
-
-#---
-#language: python
-#sudo: false
-#python:
-#  - "3.6"
-#
-#env:
-#  global:
-#    - KUBECONFIG=~/.kube/config
-#    - PATH=~/bin:${PATH}
-#    - SCOUT_DISABLE=1
-#    - secure: "3WyLV9dtBU6RXKgJMDN+xzit/aRKsygon0Ymas0Cov6eXu+GnbXlU1XCbkF0EQwBGpx6iPSEnzB+IHUba+4RbP3m6dW05MzfUPqV5NrvvVLIFH+t3bc14Uu7NLUqaD7HeiobCFVM76fONdZIO9r9DPut8ZWrUgWcUJfp/RdihO90QZDKsVvRkPmk/8VVLcDToJSDrJ3h7jxcSeNqYt+B87W1rQQ501qomjt9uQenrHAZX2OMO0ccm1NIKU+1D8iUwcbtD4KJW6T+p/2mOQ4dSnpW07CRTb1KKi5xlJo98GkNpqo4n775KJ2E3dmQERACd+JyvP7PIopslzSdF+MOnZyoLZqcr60O1CKQ2+pY57vYrG9iDvLj10042RB7ZDsxw0+Px2ax5MyoT9pbXSfTrnkfGsW2ZA6jENb/jMCmB74Fj+qf4QyYqL9oQbYgLCLTlYRw3uZnziD7lmFIOC80pYteACJhqFtvgJUMNTQR+uFdR6RzfwJe/mqU9LznLCYSB2t0L/cFphX9rshuxBGuWITnTqYuZgu3UFqQ+ysN6871qXyZe3zLYdFv2542RlkpOaeWmylj4g8jxR9Xk8neFedcxSzrf+rGmSzIEyEQjSTSG6BfkAuquLwyZalqRsMYVoTPFMccXZ2+jS70NEYGUOIveIpsAwJMxtNcZ4zVEuU="
-#
-#install:
-#  - pip install -U tox-travis
-#  - mkdir -p ~/bin
-#  - curl -L -o ~/bin/kubernaut "https://s3.amazonaws.com/datawire-static-files/kubernaut/$(curl -s https://s3.amazonaws.com/datawire-static-files/kubernaut/stable.txt)/kubernaut"
-#  - curl -L -o ~/bin/kubectl "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
-#  - chmod +x ~/bin/kubernaut
-#  - chmod +x ~/bin/kubectl
-#  - ci/install_kubernaut_credentials.sh
-#
-#script:
-#  - if [[ "${TRAVIS_TAG}" == "" ]]; then
-#      kubernaut claim;
-#      mv ~/.kube/kubernaut ~/.kube/config;
-#      tox -e py36 && ./build.sh;
-#    fi
-#
-#after_script:
-#  - kubernaut discard
-#
-#deploy:
-#  - provider: script
-#    skip_cleanup: true
-#    script: ./publish.sh
-#    on:
-#      tags: false
-#      branch: master
-#  - provider: script
-#    skip_cleanup: true
-#    script: ./release.sh
-#    on:
-#      tags: true
-#      branch: master
