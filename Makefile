@@ -63,8 +63,8 @@ venv/bin/activate: requirements.txt requirements/
 
 vm-images: DOCKER_IMAGE = hashicorp/packer:light
 vm-images: DOCKER_WORKDIR = $(DOCKER_MOUNTDIR)
-vm-images: PACKER_ARGS += -var=AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
-vm-images: PACKER_ARGS += -var=AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
+vm-images: DOCKER_ARGS += -e AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
+vm-images: DOCKER_ARGS += -e AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
 vm-images: packer/packer-vars.json
 	@$(PACKER_VALIDATE)
 	$(PACKER_BUILD)
