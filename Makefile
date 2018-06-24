@@ -7,9 +7,10 @@ GIT_MAIN_BRANCH ?= master
 GIT_COMMIT_HASH := $(shell git rev-parse --short --verify HEAD)
 
 DOCKER_IMAGE    = python:3.6-slim
-DOCKER_MOUNTDIR = /mnt/project
+DOCKER_MOUNTDIR = /project
 DOCKER_WORKDIR  = $(DOCKER_MOUNTDIR)
-DOCKER_ARGS     = --rm -it --volume=$(PWD):/mnt/project --workdir=$(DOCKER_WORKDIR)
+DOCKER_ARGS     = --rm -it --volume=$(PWD):$(DOCKER_MOUNTDIR) --workdir=$(DOCKER_WORKDIR)
+DOCKER_ARGS     += -e HOST_USER_ID=$(shell id -u) -e HOST_USER_GROUP_ID=$(shell id -g)
 DOCKER_RUN      = docker run $(DOCKER_ARGS) $(DOCKER_IMAGE)
 
 PACKER_EXEC     = $(DOCKER_RUN)

@@ -13,7 +13,7 @@ apt-get update && apt-get install binutils make
 
 # produce a copy of the host mount that we can safely modify for test / build etc without affecting the developers
 # current tree
-cp -R /mnt/project/. .
+cp -R ${MOUNT_DIR}/. .
 
 make clean
 
@@ -30,6 +30,10 @@ pyinstaller kubernaut/agent.py \
     --onefile \
     --workpath build
 
-mkdir -p ${MOUNT_DIR}/build/out
-chown 1000:1000 ${MOUNT_DIR}/build/out build/out/${BINARY_NAME}
+chown ${HOST_USER_ID}:${HOST_USER_GROUP_ID} build/out/${BINARY_NAME}
+
+mkdir -p -m 755 ${MOUNT_DIR}/build/out
 cp build/out/${BINARY_NAME} ${MOUNT_DIR}/build/out/
+
+chown ${HOST_USER_ID}:${HOST_USER_GROUP_ID} ${MOUNT_DIR}/build
+chown -R ${HOST_USER_ID}:${HOST_USER_GROUP_ID} ${MOUNT_DIR}/build/*
