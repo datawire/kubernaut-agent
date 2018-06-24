@@ -63,6 +63,9 @@ systemctl stop kubelet
 systemctl disable kubelet
 
 # --- Kubernaut Stuff ---
+mkdir -p /usr/local/bin
+mv /tmp/kubernautlet /usr/local/bin
 chmod +x /usr/local/bin/kubernautlet
+
 mkdir /etc/kubernaut
 printf "${KUBERNETES_VERSION}" > /etc/kubernaut/kubernetes_version
