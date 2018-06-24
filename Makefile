@@ -28,7 +28,7 @@ clean:
 	rm -rf \
 		build \
 		venv \
-		.tox
+		.tox \
 		*.egg-info \
 		__pycache__
 	find -iname "*.pyc" -delete
