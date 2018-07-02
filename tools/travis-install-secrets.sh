@@ -28,6 +28,6 @@ mv ci-secrets/aws_config ~/.aws/config
 mv ci-secrets/aws_credentials ~/.aws/credentials
 
 mkdir -p ~/googlecloud
-mv ci-secrets/googlecloud_credentials.json ~/googlecloud/credentials.json
+mv ci-secrets/googlecloud/credentials.json ~/googlecloud/credentials.json
 
 rm -f ci-secrets.tar.gz
