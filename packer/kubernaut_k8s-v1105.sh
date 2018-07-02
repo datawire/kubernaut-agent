@@ -5,7 +5,7 @@ set -o pipefail
 set -o verbose
 
 export DEBIAN_FRONTEND=noninteractive
-export KUBERNETES_VERSION="1.10.2"
+export KUBERNETES_VERSION="1.10.5"
 export KUBERNETES_VERSION_DEB="${KUBERNETES_VERSION}-00"
 
 # --- Distribution Upgrade ---
@@ -22,6 +22,7 @@ apt-get -y install \
     awscli \
     ca-certificates \
     curl \
+    git \
     software-properties-common
 
 rm -rf /var/lib/apt/lists/*
@@ -65,6 +66,9 @@ systemctl disable kubelet
 mkdir -p /usr/local/bin
 mv /tmp/kubernautlet /usr/local/bin
 chmod +x /usr/local/bin/kubernautlet
+
+# ensure the systemd service does not start kubernautlet on boot
+systemctl disable kubernautlet
 
 mkdir /etc/kubernaut
 printf "${KUBERNETES_VERSION}" > /etc/kubernaut/kubernetes_version

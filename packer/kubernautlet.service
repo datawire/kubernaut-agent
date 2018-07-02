@@ -1,0 +1,14 @@
+[Unit]
+Description=Kubernautlet
+Documentation=https://github.com/datawire/kubernautlet
+After=network.target
+AssertFileIsExecutable=/usr/local/bin/kubernautlet
+AssertFileIsReadable=/tmp/kubeconfig_ip
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/kubernautlet /tmp/kubeconfig_ip
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
