@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
-set -o verbose
 set -o errexit
+set -o nounset
 set -o pipefail
+set -o verbose
 
 export DEBIAN_FRONTEND=noninteractive
 export KUBERNETES_VERSION="1.10.2"
 export KUBERNETES_VERSION_DEB="${KUBERNETES_VERSION}-00"
-
-set -o nounset
 
 # --- Distribution Upgrade ---
 

@@ -4,6 +4,7 @@ set -o pipefail
 
 GIT_COMMIT_HASH=${1:?not set or empty}
 BINARY_NAME=${2:?not set or empty}
+BUILD_URL=${}
 
 cat << EOF > packer/packer-vars.json
 {

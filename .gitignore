@@ -1,3 +1,8 @@
+# --- Project ---
+ci-secrets
+ci-secrets/*
+ci-secrets.tar.gz
+
 # --- AWS ---
 ci/aws_credentials
 

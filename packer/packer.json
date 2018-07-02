@@ -8,7 +8,7 @@
 
   "builders": [
     {
-      "name": "kubernaut-k8s-v1102",
+      "name": "AWS-kubernaut-k8s-v1102",
       "type": "amazon-ebs",
       "ami_description": "kubernaut vm",
       "ami_name": "kubernaut-{{ user `commit` }}-k8s-v1102",
@@ -29,13 +29,25 @@
         "Name": "packer-kubernaut-{{ user `commit` }}-k8s-v1102",
         "Role": "packer"
       },
-      "source_ami": "ami-7ad76705",
+      "source_ami": "ami-5cc39523",
       "sriov_support": true,
       "ssh_username": "ubuntu",
       "tags": {
-        "Build": "{{ user `build_url` }}",
-        "Commit": "{{ user `commit` }}",
-        "kubernaut.io/kubernetes-version": "1.10.2"
+        "commit": "{{ user `commit` }}"
+      }
+    },
+    {
+      "name": "GCE-kubernaut-k8s-v1102",
+      "type": "googlecompute",
+      "project_id": "datawireio",
+      "image_description": "kubernaut vm",
+      "image_name": "kubernaut-{{ user `commit` }}-k8s-v1102",
+      "preemptible": true,
+      "zone": "us-central1-f",
+      "source_image_family": "ubuntu-1804-lts",
+      "ssh_username": "ubuntu",
+      "image_labels": {
+        "commit": "{{ user `commit` }}"
       }
     }
   ],
@@ -47,7 +59,7 @@
       "destination": "/tmp/kubernautlet"
     },
     {
-      "only": ["kubernaut-k8s-v1102"],
+      "only": ["AWS-kubernaut-k8s-v1102", "GCE-kubernaut-k8s-v1102"],
       "type": "shell",
       "scripts": [
         "packer/kubernaut_k8s-v1102.sh"

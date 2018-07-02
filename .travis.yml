@@ -5,12 +5,17 @@ language: generic
 
 env:
   global:
-    # kubernautlet-ci
-    - AWS_ACCESS_KEY_ID=AKIAJXBYLGLCJA7BEJCA
-    - secure: "L1gU8lf1KjZZuUUyJkVs5He+vJOOe/x/qEDbnQwW4A9nRZCX7yT5ngmkVlZo2zbEumAKPC5q5HoQnU55eUkOLHMhY9PErSx7XSJzC9uOuOBXiGBVWIdNroEzBGYgJdvQsk+Y7VYO6J1cQE5Cylcil/HGVwIarO8TurjRC0lREsk/23npktNz/Mf+8e1yVV61pbgzaWZ58UJD9RYvxnejtIgMwoYoL2Hvt86VHnA2ijnvpgtNOXyKn+Wgwuf2ZqGXuaWHgSD4iNWj//DVt+T4A/HWk8DM5VpQxP9/ittfjP1cfyZQVElJc0R5Clb6jm8ndszBLPJaQfjVZAVoWwCgbzBTv4fJ8gPa3U/iwckaDRuZcjuE23bn7iO0ATLDTsxFRAXl8PxASSET30C3ySROckcGbmD+ra5CMkZxMXGlRqTtxPEynSieCymzqbjFu+9Ft02CdLGNXiKwMH83Uu0zJ7vRfJrcb/f37l7MjGVHOrvAfz8+hknl/T/9djXKyDFZNnNlMXqAhKkQXguf3zHDfb/Zprz9uL+RcCdoRWePMfZQQeFNcCKm1zjbjTBLVO5jnvQT6TCvzA1zjIaTXjRQ14rOV9n9uP4X3giQRVhiBaGTh6WtIvlyEEj1CozpR3/v7JhYZgVCSkD+m8OrAAP1dJwUKmtozGkC+M9Tr/RgTEE="
+    - CLOUDSDK_CORE_DISABLE_PROMPTS=1
+
+cache:
+  directories:
+    - "$HOME/google-cloud-sdk/"
 
 services:
   - docker
+
+install:
+  - tools/travis-install-secrets.sh
 
 script:
   - make compile SKIP_TESTS=false
