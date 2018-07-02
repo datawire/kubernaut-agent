@@ -67,7 +67,7 @@
       "only": ["AWS-kubernaut-k8s-v1102", "GCE-kubernaut-k8s-v1102"],
       "type": "shell",
       "scripts": [
-        "packer/kubernaut_k8s-v1102.sh"
+        "packer/kubernaut_k8s-v1105.sh"
       ],
       "execute_command": "{{ .Vars }} sudo -E -S bash '{{ .Path }}'"
     }
