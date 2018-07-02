@@ -78,5 +78,5 @@ vm-images: DOCKER_IMAGE = hashicorp/packer:light
 vm-images: DOCKER_ARGS += -e GOOGLE_APPLICATION_CREDENTIALS=/root/google-cloud/credentials.json
 vm-images: DOCKER_ARGS += -v ~/.aws:/root/.aws -v ~/google-cloud:/root/google-cloud
 vm-images: packer/packer-vars.json
-	$(PACKER_VALIDATE)
-	$(PACKER_BUILD)
+	@$(PACKER_VALIDATE)
+	@$(PACKER_BUILD)
