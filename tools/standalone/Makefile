@@ -60,3 +60,8 @@ validate: init
 ssh: TF_OUTPUT_VAR=instance_public_ip
 ssh:
 	ssh -i insecure_rsa ubuntu@$(shell $(TF_OUTPUT))
+
+get-kubeconfig: CLUSTER_NAME=kubernaut-$(USER)
+get-kubeconfig: TF_OUTPUT_VAR=instance_public_ip
+get-kubeconfig:
+	scp -i insecure_rsa ubuntu@$(shell $(TF_OUTPUT)):/tmp/kubeconfig_ip ~/.kube/$(CLUSTER_NAME)
