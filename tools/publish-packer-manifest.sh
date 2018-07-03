@@ -7,4 +7,4 @@ set -o verbose
 aws s3api put-object \
     --bucket datawire-static-files \
     --key kubernautlet/packer-manifest.json \
-    --body packer/packer-manifest.json
+    --body packer-manifest.json
