@@ -61,7 +61,7 @@
     {
       "type": "file",
       "source": "packer/kubernautlet.service",
-      "destination": "/etc/systemd/system/kubernautlet.service"
+      "destination": "/tmp/kubernautlet.service"
     },
     {
       "only": ["AWS-kubernaut-k8s-v1102", "GCE-kubernaut-k8s-v1102"],

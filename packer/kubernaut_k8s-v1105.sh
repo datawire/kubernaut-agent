@@ -65,6 +65,7 @@ systemctl disable kubelet
 # --- Kubernaut Stuff ---
 mkdir -p /usr/local/bin
 mv /tmp/kubernautlet /usr/local/bin
+mv /tmp/kubernautlet.service /etc/systemd/system/kubernautlet.service
 chmod +x /usr/local/bin/kubernautlet
 
 # ensure the systemd service does not start kubernautlet on boot
