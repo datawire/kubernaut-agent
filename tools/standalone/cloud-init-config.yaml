@@ -1,0 +1,8 @@
+#cloud-config
+
+write_files:
+  - encoding: gz+b64
+    content: ${bootstrap_vars}
+    owner: root:root
+    path: /tmp/bootstrap.vars
+    permissions: "0644"

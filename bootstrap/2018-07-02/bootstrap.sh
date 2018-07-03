@@ -11,6 +11,7 @@ export KUBERNETES_VERSION="$(cat /etc/kubernaut/kubernetes_version | tr -d '\n')
 
 aws ec2 create-tags \
    --resources $INSTANCE_ID \
+   --region us-east-1 \
    --tags Key=kubernetes.io/cluster/$CLUSTER_NAME,Value=owned
 
 # We needed to match the hostname expected by kubeadm to the hostname used by kubelet
@@ -19,9 +20,6 @@ aws ec2 create-tags \
 #
 FULL_HOSTNAME="$(curl -s http://169.254.169.254/latest/meta-data/hostname)"
 hostname "$FULL_HOSTNAME"
-
-# Make DNS lowercase
-DNS_NAME=$(echo "$DNS_NAME" | tr 'A-Z' 'a-z')
 
 # Start services
 systemctl start docker
@@ -49,9 +47,6 @@ rm /tmp/kubeadm.yaml
 # Use the local kubectl config for further kubectl operations
 export KUBECONFIG=/etc/kubernetes/admin.conf
 
-# Install calico (legacy)
-# kubectl apply -f /tmp/calico.yaml
-
 # Allow all apps to run on master
 kubectl taint nodes --all node-role.kubernetes.io/master-
 
@@ -66,7 +61,7 @@ kubectl apply -f https://docs.projectcalico.org/v3.1/getting-started/kubernetes/
 kubectl create clusterrolebinding admin-cluster-binding --clusterrole=cluster-admin --user=admin
 
 # Prepare the kubectl config file for download to client (IP address)
-export KUBECONFIG_OUTPUT=/home/ubuntu/kubeconfig_ip
+export KUBECONFIG_OUTPUT=/tmp/kubeconfig_ip
 kubeadm alpha phase kubeconfig user \
  --client-name admin \
  --apiserver-advertise-address $IP_ADDRESS \
