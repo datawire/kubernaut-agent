@@ -32,6 +32,8 @@ cat >/tmp/kubeadm.yaml <<EOF
 ---
 apiVersion: kubeadm.k8s.io/v1alpha1
 kind: MasterConfiguration
+networking:
+ podSubnet: 192.168.0.0/16
 nodeName: $FULL_HOSTNAME
 tokenTTL: "0"
 cloudProvider: aws
@@ -47,14 +49,18 @@ rm /tmp/kubeadm.yaml
 # Use the local kubectl config for further kubectl operations
 export KUBECONFIG=/etc/kubernetes/admin.conf
 
-# Install calico
-kubectl apply -f /tmp/calico.yaml
+# Install calico (legacy)
+# kubectl apply -f /tmp/calico.yaml
 
 # Allow all apps to run on master
 kubectl taint nodes --all node-role.kubernetes.io/master-
 
 # Allow load balancers to route to master
 kubectl label nodes --all node-role.kubernetes.io/master-
+
+# Install Calico
+kubectl apply -f https://docs.projectcalico.org/v3.1/getting-started/kubernetes/installation/hosted/rbac-kdd.yaml
+kubectl apply -f https://docs.projectcalico.org/v3.1/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml
 
 # Allow the user to act as administrator of the cluster
 kubectl create clusterrolebinding admin-cluster-binding --clusterrole=cluster-admin --user=admin

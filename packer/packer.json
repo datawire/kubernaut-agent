@@ -75,8 +75,7 @@
 
   "post-processors": [
     {
-      "type": "manifest",
-      "strip_path": true
+      "type": "manifest"
     }
   ]
 }
