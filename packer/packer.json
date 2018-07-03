@@ -60,7 +60,7 @@
     },
     {
       "type": "file",
-      "source": "kubernautlet.service",
+      "source": "packer/kubernautlet.service",
       "destination": "/etc/systemd/system/kubernautlet.service"
     },
     {

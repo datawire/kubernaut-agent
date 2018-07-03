@@ -30,3 +30,9 @@ build
 
 # --- Kubernetes ---
 .kube
+
+# --- Terraform ---
+plan.out
+tfplan
+terraform.tfstate*
+.terraform

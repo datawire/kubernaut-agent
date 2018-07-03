@@ -19,8 +19,4 @@ install:
 
 script:
   - make compile SKIP_TESTS=false
-
-deploy:
-  - provider: script
-    skip_cleanup: true
-    script: make vm-images
+  - make vm-images
