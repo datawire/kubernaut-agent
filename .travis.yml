@@ -3,14 +3,6 @@ sudo: false
 dist: trusty
 language: generic
 
-env:
-  global:
-    - CLOUDSDK_CORE_DISABLE_PROMPTS=1
-
-cache:
-  directories:
-    - "$HOME/google-cloud-sdk/"
-
 services:
   - docker
 
@@ -20,3 +12,7 @@ install:
 script:
   - make compile SKIP_TESTS=false
   - make vm-images
+
+deploy:
+  provider: script
+  script: tools/publish-packer-manifest.sh

@@ -71,5 +71,12 @@
       ],
       "execute_command": "{{ .Vars }} sudo -E -S bash '{{ .Path }}'"
     }
+  ],
+
+  "post-processors": [
+    {
+      "type": "manifest",
+      "strip_path": true
+    }
   ]
 }
