@@ -15,4 +15,5 @@ script:
 
 deploy:
   provider: script
+  skip_cleanup: true
   script: tools/publish-packer-manifest.sh
