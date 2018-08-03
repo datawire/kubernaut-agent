@@ -25,8 +25,14 @@ agent_state: str = "starting"
     "--controller",
     envvar="KUBERNAUT_CONTROLLER_ADDRESS",
     help="Configure remote Kubernaut Controller address",
-    default="wss://kubernaut.io/ws/kapv1",
+    default="wss://next.kubernaut.io/ws/kapv1",
     type=str
+)
+@click.option(
+    "--cluster-shutdown",
+    envvar="KUBERNAUT_CLUSTER_SHUTDOWN",
+    default=True,
+    type=bool
 )
 @click.argument(
     "kubeconfig_file",
@@ -38,9 +44,10 @@ agent_state: str = "starting"
     envvar="KUBERNAUT_CLUSTER_GROUP_TOKEN",
     type=str
 )
-def run_agent(controller: str, kubeconfig_file: str, token: str):
+def run_agent(controller: str, cluster_shutdown: bool, kubeconfig_file: str, token: str):
     logging.info("Agent is %s", agent_state)
     logging.info("Agent is connecting to %s", controller)
+    logging.info("Agent cluster shutdown %s", ("enabled" if cluster_shutdown else "disabled"))
 
     global agent_id, cluster
 
@@ -62,10 +69,10 @@ def run_agent(controller: str, kubeconfig_file: str, token: str):
     )
 
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(_run_agent(controller))
+    loop.run_until_complete(_run_agent(controller, cluster_shutdown))
 
 
-async def _run_agent(controller: str):
+async def _run_agent(controller: str, cluster_shutdown: bool):
     global agent_id, agent_state, cluster
     controller_url = "{}?agent-id={}".format(controller, str(agent_id))
     async with websockets.connect(controller_url) as websocket:
@@ -103,18 +110,14 @@ async def _run_agent(controller: str):
 
                 # this is some drop dead stupid code, but under local dev scenarios I would be very annoyed if localhost
                 # did something like shutdown my cluster or my computer.
-                if "localhost" in controller_url or "127.0.0.1" in controller_url:
-                    cluster.shutdown(
-                        kubectl_handler=do_nothing_handler,
-                        kubeadm_handler=do_nothing_handler,
-                        system_handler=do_nothing_handler,
-                    )
-                else:
+                if cluster_shutdown:
                     cluster.shutdown(
                         kubectl_handler=kubectl,
                         kubeadm_handler=kubeadm,
                         system_handler=os.system,
                     )
+                else:
+                    logging.info("Cluster shutdown disabled")
 
             sleep(5)
 
