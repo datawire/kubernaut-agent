@@ -69,3 +69,6 @@ kubeadm alpha phase kubeconfig user \
 
 chown ubuntu:ubuntu ${KUBECONFIG_OUTPUT}
 chmod 0600 ${KUBECONFIG_OUTPUT}
+
+systemctl enable kubernautlet.service
+systemctl start  kubernautlet.service

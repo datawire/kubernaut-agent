@@ -3,10 +3,12 @@ Description=Kubernautlet
 Documentation=https://github.com/datawire/kubernautlet
 After=network.target
 AssertFileIsExecutable=/usr/local/bin/kubernautlet
+AssertFileIsReadable=/tmp/bootstrap.env
 AssertFileIsReadable=/tmp/kubeconfig_ip
 
 [Service]
 Type=simple
+EnvironmentFile=/tmp/bootstrap.env
 ExecStart=/usr/local/bin/kubernautlet /tmp/kubeconfig_ip
 Restart=always
 
