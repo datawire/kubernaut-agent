@@ -25,7 +25,7 @@ agent_state: str = "starting"
     "--controller",
     envvar="KUBERNAUT_CONTROLLER_ADDRESS",
     help="Configure remote Kubernaut Controller address",
-    default="wss://next.kubernaut.io/ws/kapv1",
+    default="wss://next.kubernaut.io/beta/ws/kapv1",
     type=str
 )
 @click.option(
@@ -104,7 +104,7 @@ async def _run_agent(controller: str, cluster_shutdown: bool):
             else:
                 logger.warning("Received unknown message type: %s", json_dict["@type"])
 
-            if cluster.state in ["discarded", "expired", "released"]:
+            if cluster.state.lower() in ["discarded", "expired", "released"]:
                 def do_nothing_handler(*args, **kwargs):
                     return 0, ""
 
@@ -118,6 +118,7 @@ async def _run_agent(controller: str, cluster_shutdown: bool):
                     )
                 else:
                     logging.info("Cluster shutdown disabled")
+                    return
 
             sleep(5)
 
