@@ -105,12 +105,11 @@ async def _run_agent(controller: str, cluster_shutdown: bool):
                 logger.warning("Received unknown message type: %s", json_dict["@type"])
 
             if cluster.state.lower() in ["discarded", "expired", "released"]:
-                def do_nothing_handler(*args, **kwargs):
-                    return 0, ""
+                agent_state = "shutdown"
 
-                # this is some drop dead stupid code, but under local dev scenarios I would be very annoyed if localhost
-                # did something like shutdown my cluster or my computer.
+            if agent_state == "shutdown":
                 if cluster_shutdown:
+                    logging.info("Cluster shutdown starting")
                     cluster.shutdown(
                         kubectl_handler=kubectl,
                         kubeadm_handler=kubeadm,
@@ -118,9 +117,10 @@ async def _run_agent(controller: str, cluster_shutdown: bool):
                     )
                 else:
                     logging.info("Cluster shutdown disabled")
-                    return
 
-            sleep(5)
+                return
+            else:
+                sleep(5)
 
 
 def ensure_data_dir_exists(data_dir: Path) -> Path:
