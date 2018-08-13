@@ -5,12 +5,16 @@ After=network.target
 AssertFileIsExecutable=/usr/local/bin/kubernautlet
 AssertPathExists=/tmp/bootstrap.env
 AssertPathExists=/tmp/kubeconfig_ip
+StartLimitIntervalSec=120
+StartLimitBurst=10
+StartLimitAction=poweroff
 
 [Service]
 Type=simple
 EnvironmentFile=/tmp/bootstrap.env
 ExecStart=/usr/local/bin/kubernautlet /tmp/kubeconfig_ip
-Restart=always
+Restart=on-failure
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
