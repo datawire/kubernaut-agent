@@ -7,9 +7,9 @@ from kubernaut.kubernetes import kubeadm, kubectl
 
 
 def shutdown(cluster):
-    with tempfile.NamedTemporaryFile(encoding="UTF-8", prefix="kubeconfig-") as fp:
+    with tempfile.NamedTemporaryFile(mode='w+', encoding="UTF-8", prefix="kubeconfig-") as fp:
         fp.write(cluster.kubeconfig)
-        env_kubectl = {"KUBECONFIG": os.getenv(fp.name)}
+        env_kubectl = {"KUBECONFIG": fp.name}
 
         (status, output) = kubectl(["get", "nodes", "--output=jsonpath={.items[*].metadata.name}"], env_kubectl)
         nodes = []
