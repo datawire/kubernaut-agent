@@ -14,7 +14,7 @@ class Cluster:
     def shutdown(self, kubectl_handler, kubeadm_handler, system_handler):
         with tempfile.NamedTemporaryFile(mode='w+', encoding="utf-8", prefix="kubeconfig-") as fp:
             fp.write(self.kubeconfig)
-            env_kubectl = {"KUBECONFIG": os.getenv(fp.name)}
+            env_kubectl = {"KUBECONFIG": fp.name}
 
             (status, output) = kubectl_handler(
                 ["get", "nodes", "--output=jsonpath={.items[*].metadata.name}"], env_kubectl)
