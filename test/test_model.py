@@ -21,8 +21,9 @@ def test_cluster_shutdown():
         system_handler=fake_handler
     )
 
-    assert call_invocations[0] == \
-        ((["get", "nodes", "--output=jsonpath={.items[*].metadata.name}"], {"KUBECONFIG": None}), {})
+    get_nodes_call = call_invocations[0]
+    assert get_nodes_call[0][0] == ["get", "nodes", "--output=jsonpath={.items[*].metadata.name}"]
+    assert get_nodes_call[0][1]["KUBECONFIG"] is not None
 
     assert call_invocations[-1 - 1] == ((["reset"],), {})
     assert call_invocations[-1] == (("systemctl poweroff",), {})
