@@ -21,6 +21,10 @@ aws ec2 create-tags \
 FULL_HOSTNAME="$(curl -s http://169.254.169.254/latest/meta-data/hostname)"
 hostname "$FULL_HOSTNAME"
 
+# FIX: https://stackoverflow.com/questions/45246147/kubernetes-kubedns-sidecar-and-masq-crashes-if-i-do-a-nslookup
+mv /etc/resolv.conf /etc/resolv.conf.ORIGINAL
+ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
+
 # Start services
 systemctl start docker
 systemctl start kubelet
