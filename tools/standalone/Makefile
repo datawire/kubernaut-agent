@@ -59,6 +59,7 @@ validate: init
 
 ssh: TF_OUTPUT_VAR=instance_public_ip
 ssh:
+	chmod 0600 insecure_rsa*
 	ssh -i insecure_rsa ubuntu@$(shell $(TF_OUTPUT))
 
 get-kubeconfig: CLUSTER_NAME=kubernaut-$(USER)
