@@ -37,7 +37,7 @@ if [[ -z "${BOOTSTRAP_REPO}" ]]; then
 fi
 
 cd /tmp
-git clone ${BOOTSTRAP_REPO} kubernaut-bootstrap-repo
+git clone ${BOOTSTRAP_REPO} kubernaut-agent-bootstrap
 cd kubernaut-agent-bootstrap/${BOOTSTRAP_BUNDLE}
 
 if [[ ! -f "${BOOTSTRAP_SCRIPT}" ]]; then

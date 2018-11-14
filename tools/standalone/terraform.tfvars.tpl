@@ -1,5 +1,5 @@
 bootstrap_repo   = "https://github.com/datawire/kubernaut-agent.git"
-bootstrap_bundle = "bundle/2018-07-02"
+bootstrap_bundle = "bootstrap/2018-07-02"
 cluster_name     = "__CLUSTER_NAME__"
 image_id         = "__IMAGE_ID__"
 instance_type    = "m4.large"
