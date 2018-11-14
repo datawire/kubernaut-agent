@@ -23,3 +23,7 @@ If you want to use a specific virtual machine image then you should override the
 Useful for debugging or developing bootstrap scripts without continually pulling an instance up or down.
 
 `make ssh`
+
+## Get kubeconfig (requires manual polling to see if ready atm)
+
+`make get-kubeconfig`
